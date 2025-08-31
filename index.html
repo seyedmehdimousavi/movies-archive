@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>🎬 آرشیو فیلم‌ها</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6200ee;
+      --bg: #f5f5f5;
+      --text: #222;
+      --card-bg: rgba(255,255,255,0.7);
+      --blur: 10px;
+    }
+    body.dark {
+      --bg: #121212;
+      --text: #eee;
+      --card-bg: rgba(30,30,30,0.6);
+    }
+    body {
+      font-family: 'Vazirmatn', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      transition: background 0.3s, color 0.3s;
+    }
+    header {
+      backdrop-filter: blur(var(--blur));
+      background: rgba(255,255,255,0.4);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+    }
+    body.dark header {
+      background: rgba(20,20,20,0.4);
+    }
+    .header-left {
+      flex: 1;
+    }
+    .search-input {
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: 20px;
+      border: none;
+      outline: none;
+      background: rgba(255,255,255,0.6);
+      backdrop-filter: blur(5px);
+      transition: all 0.3s;
+    }
+    body.dark .search-input {
+      background: rgba(50,50,50,0.6);
+      color: white;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .icon-btn {
+      background: rgba(255,255,255,0.6);
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(5px);
+      transition: all 0.3s;
+      font-size: 18px;
+    }
+    .icon-btn:hover {
+      transform: scale(1.1);
+    }
+    .icon-btn.admin-logged {
+      background: #4caf50;
+      color: white;
+    }
+    .container {
+      max-width: 1100px;
+      margin: auto;
+      padding: 16px;
+    }
+    .field-label {
+  font-weight: bold;
+  margin-top: 8px;
+  display: block;
+  color: var(--text);
+}
+
+.field-quote {
+  background: #e3f2fd; /* آبی ملایم */
+  border-right: 4px solid #2196f3; /* خط کناری شبیه تلگرام */
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #0d47a1; /* متن آبی تیره */
+  margin-bottom: 10px;
+  white-space: pre-line; /* حفظ خط‌های جدید */
+}
+    .movies-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 16px;
+    }
+    .movie-card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      backdrop-filter: blur(12px);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      animation: fadeIn 0.5s ease;
+    }
+    .movie-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+    }
+    .movie-card img {
+      width: 100%;
+      height: auto;
+      max-height: 200px;
+      object-fit: contain;
+      background: rgba(255,255,255,0.1);
+      border-radius: 15px;
+      padding: 5px;
+    }
+    .movie-info {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .movie-title {
+      font-weight: bold;
+    }
+    .go-btn {
+      background: var(--primary);
+      color: white;
+      padding: 8px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: center;
+      transition: background 0.3s;
+    }
+    .go-btn:hover {
+      background: #4500b5;
+    }
+    .movie-details {
+      background: rgba(255,255,255,0.2);
+      backdrop-filter: blur(8px);
+      border-radius: 12px;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 0.9rem;
+    }
+    body.dark .movie-details {
+      background: rgba(30,30,30,0.4);
+    }
+    .movie-details div {
+      margin-bottom: 6px;
+    }
+    .movie-details .label {
+      font-weight: bold;
+      color: var(--text);
+    }
+    .movie-details .value {
+      color: #3a7bd5;
+    }
+    input[type="text"], input[type="email"], input[type="password"], input[type="file"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 8px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      outline: none;
+      transition: border 0.3s;
+    }
+    input:focus {
+      border-color: var(--primary);
+    }
+    .cover-container {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  border-radius: 15px;
+  margin-bottom: 10px;
+}
+
+.cover-blur {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(20px);
+  transform: scale(1.2);
+  z-index: 0;
+}
+
+.cover-image {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 5px;
+  border-radius: 15px;
+}
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <input type="text" id="search" class="search-input" placeholder="جست‌وجوی فیلم..." oninput="renderMovies()">
+  </div>
+  <div class="header-right">
+    <button id="adminIcon" class="icon-btn" onclick="showLogin()">👤</button>
+    <button class="icon-btn" onclick="toggleTheme()">🌓</button>
+  </div>
+</header>
+
+<div class="container">
+  <div id="movieCount"></div>
+  <div class="movies-grid" id="moviesGrid"></div>
+</div>
+
+<div class="container" id="adminSection" style="display:none;">
+  <h3>مدیریت فیلم‌ها</h3>
+  <input type="text" id="title" placeholder="نام فیلم">
+  <input type="file" id="coverFile" accept="image/*">
+  <input type="text" id="link" placeholder="لینک پیام تلگرام">
+  <input type="text" id="synopsis" placeholder="📝 Synopsis">
+  <input type="text" id="director" placeholder="🎬 Director">
+  <input type="text" id="product" placeholder="🌍 Product">
+  <input type="text" id="stars" placeholder="⭐️ Stars">
+  <input type="text" id="imdb" placeholder="📱 IMDB">
+  <input type="text" id="release_info" placeholder="📅 Release Info">
+  <input type="text" id="genre" placeholder="✏️ Genre">
+  <input type="hidden" id="editId">
+  <button onclick="submitMovie()" style="background:#4caf50;color:white;padding:10px 20px;border:none;border-radius:5px;">ثبت</button>
+  <div id="messageBox"></div>
+  <div id="adminList" style="margin-top:20px;"></div>
+</div>
+
+<div id="loginModal" style="
+  position: fixed; top:0; left:0; width:100%; height:100%;
+  background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
+  z-index: 9999; display:none;">
+  <div style="background: white; padding: 20px; border-radius: 12px; width: 300px; text-align: center;">
+    <h3>ورود ادمین</h3>
+    <input type="email" id="adminEmail" placeholder="ایمیل" autocomplete="username">
+    <input type="password" id="adminPassword" placeholder="رمز عبور" autocomplete="current-password">
+    <button onclick="doLogin()" style="background:#6200ee;color:white;padding:10px 20px;border:none;border-radius:5px;width:100%;">ورود</button>
+  </div>
+</div>
+
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL = "https://gwsmvcgjdodmkoqupdal.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3c212Y2dqZG9kbWtvcXVwZGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1NDczNjEsImV4cCI6MjA3MjEyMzM2MX0.OVXO9CdHtrCiLhpfbuaZ8GVDIrUlA8RdyQwz2Bk2cDY";
+  const BUCKET_NAME = "covers";
+  const ADMIN_UID = "7314d471-8343-44b3-9fcc-a9ae01d99725";
+
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  let movies = [];
+  let currentUser = null;
+  let darkMode = false;
+
+  // حفظ سشن و نمایش ادمین در صورت لاگین
+  supabaseClient.auth.getSession().then(({ data }) => {
+    if (data.session) {
+      currentUser = data.session.user;
+      if (currentUser.id === ADMIN_UID) {
+        document.getElementById('adminSection').style.display = 'block';
+        document.getElementById('adminIcon').classList.add('admin-logged');
+      }
+    }
+  });
+
+  function toggleTheme(){
+    darkMode = !darkMode;
+    document.body.classList.toggle('dark', darkMode);
+  }
+
+  async function fetchMovies() {
+    const { data, error } = await supabaseClient
+      .from('movies')
+      .select('*')
+      .order('id', { ascending: false });
+
+    if (error) return showMessage("خطا در دریافت لیست: " + error.message, true);
+
+    movies = data;
+    renderMovies();
+    renderAdminList();
+  }
+
+  function renderMovies() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const grid = document.getElementById('moviesGrid');
+  const count = document.getElementById('movieCount');
+  const filtered = movies.filter(m => m.title.toLowerCase().includes(q));
+
+  grid.innerHTML = '';
+  count.innerText = `🎞️ تعداد فیلم‌ها: ${filtered.length}`;
+
+  filtered.forEach(m => {
+    grid.innerHTML += `
+      <div class="movie-card" id="movie-${m.id}">
+        
+        <!-- کاور با پس‌زمینه بلر -->
+        <div class="cover-container">
+          <div class="cover-blur" style="background-image: url('${m.cover || 'https://via.placeholder.com/300x200?text=No+Image'}');"></div>
+          <img class="cover-image" src="${m.cover || 'https://via.placeholder.com/300x200?text=No+Image'}" alt="${m.title}">
+        </div>
+
+        <!-- اطلاعات فیلم -->
+        <div class="movie-info">
+          <div class="movie-title">${m.title}</div>
+          <button class="go-btn" onclick="window.open('${m.link}', '_blank')">Go to File</button>
+
+          <span class="field-label">📝 Synopsis:</span>
+          <div class="field-quote">${m.synopsis || '-'}</div>
+
+          <span class="field-label">🎬 Director:</span>
+          <div class="field-quote">${m.director || '-'}</div>
+
+          <span class="field-label">🌍 Product:</span>
+          <div class="field-quote">${m.product || '-'}</div>
+
+          <span class="field-label">⭐️ Stars:</span>
+          <div class="field-quote">${m.stars || '-'}</div>
+
+          <span class="field-label">📱 IMDB:</span>
+          <div class="field-quote">${m.imdb || '-'}</div>
+
+          <span class="field-label">📅 Release Info:</span>
+          <div class="field-quote">${m.release_info || '-'}</div>
+
+          <span class="field-label">✏️ Genre:</span>
+          <div class="field-quote">${m.genre || '-'}</div>
+        </div>
+      </div>
+    `;
+  });
+}
+
+  function renderAdminList() {
+    const list = document.getElementById('adminList');
+    list.innerHTML = '';
+    movies.forEach(m => {
+      list.innerHTML += `
+        <div id="admin-${m.id}" style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; background:var(--card-bg); padding:8px; border-radius:8px; backdrop-filter:blur(5px);">
+          <span>${m.title}</span>
+          <div>
+            <button onclick="loadEdit('${m.id}')" style="background:orange;color:white;border:none;padding:5px 10px;border-radius:5px;margin-left:5px;cursor:pointer;">ویرایش</button>
+            <button onclick="deleteMovie('${m.id}')" style="background:red;color:white;border:none;padding:5px 10px;border-radius:5px;cursor:pointer;">حذف</button>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  async function uploadCover(file) {
+    const fileName = `${Date.now()}-${file.name}`;
+    const { error: uploadError } = await supabaseClient
+      .storage
+      .from(BUCKET_NAME)
+      .upload(fileName, file, { cacheControl: '3600', upsert: false });
+
+    if (uploadError) {
+      showMessage("❌ آپلود کاور انجام نشد: " + uploadError.message, true);
+      return null;
+    }
+
+    const { data: publicUrlData } = supabaseClient
+      .storage
+      .from(BUCKET_NAME)
+      .getPublicUrl(fileName);
+
+    return publicUrlData.publicUrl;
+  }
+
+  async function submitMovie() {
+    if (!currentUser || currentUser.id !== ADMIN_UID) {
+      return showMessage("شما اجازه این کار را ندارید", true);
+    }
+
+    const title = document.getElementById('title').value.trim();
+    const link = document.getElementById('link').value.trim();
+    const synopsis = document.getElementById('synopsis').value.trim();
+    const director = document.getElementById('director').value.trim();
+    const product = document.getElementById('product').value.trim();
+    const stars = document.getElementById('stars').value.trim();
+    const imdb = document.getElementById('imdb').value.trim();
+    const release_info = document.getElementById('release_info').value.trim();
+    const genre = document.getElementById('genre').value.trim();
+    const fileInput = document.getElementById('coverFile');
+    const editId = document.getElementById('editId').value;
+
+    if (!title || !link) return showMessage("همه فیلدهای ضروری را پر کنید", true);
+
+    let coverUrl = '';
+    if (fileInput.files.length > 0) {
+      coverUrl = await uploadCover(fileInput.files[0]);
+      if (!coverUrl) return;
+    }
+
+    if (editId) {
+      const updateData = { title, link, synopsis, director, product, stars, imdb, release_info, genre };
+      if (coverUrl) updateData.cover = coverUrl;
+      const { error } = await supabaseClient.from('movies').update(updateData).eq('id', editId);
+      if (error) return showMessage("خطا در ویرایش: " + error.message, true);
+      showMessage("✅ فیلم با موفقیت ویرایش شد");
+    } else {
+      const { error } = await supabaseClient.from('movies').insert([{
+        title, cover: coverUrl, link, synopsis, director, product, stars, imdb, release_info, genre
+      }]);
+      if (error) return showMessage("خطا در افزودن: " + error.message, true);
+      showMessage("✅ فیلم با موفقیت اضافه شد");
+    }
+
+    clearForm();
+    fetchMovies();
+  }
+
+  async function deleteMovie(id) {
+    if (!currentUser || currentUser.id !== ADMIN_UID) {
+      return showMessage("شما اجازه این کار را ندارید", true);
+    }
+    const { error } = await supabaseClient.from('movies').delete().eq('id', id);
+    if (error) return showMessage("خطا در حذف: " + error.message, true);
+
+    movies = movies.filter(m => m.id !== id);
+    document.getElementById(`movie-${id}`)?.remove();
+    document.getElementById(`admin-${id}`)?.remove();
+    showMessage("✅ فیلم حذف شد");
+    document.getElementById('movieCount').innerText = `🎞️ تعداد فیلم‌ها: ${movies.length}`;
+  }
+
+  function loadEdit(id) {
+    const movie = movies.find(m => m.id === id);
+    if (!movie) return;
+    document.getElementById('title').value = movie.title || '';
+    document.getElementById('link').value = movie.link || '';
+    document.getElementById('synopsis').value = movie.synopsis || '';
+    document.getElementById('director').value = movie.director || '';
+    document.getElementById('product').value = movie.product || '';
+    document.getElementById('stars').value = movie.stars || '';
+    document.getElementById('imdb').value = movie.imdb || '';
+    document.getElementById('release_info').value = movie.release_info || '';
+    document.getElementById('genre').value = movie.genre || '';
+    document.getElementById('editId').value = movie.id;
+  }
+
+    function clearForm() {
+    document.getElementById('title').value = '';
+    document.getElementById('link').value = '';
+    document.getElementById('coverFile').value = '';
+    document.getElementById('synopsis').value = '';
+    document.getElementById('director').value = '';
+    document.getElementById('product').value = '';
+    document.getElementById('stars').value = '';
+    document.getElementById('imdb').value = '';
+    document.getElementById('release_info').value = '';
+    document.getElementById('genre').value = '';
+    document.getElementById('editId').value = '';
+  }
+
+  function showMessage(msg, isError = false) {
+    const box = document.getElementById('messageBox');
+    box.innerHTML = `<div class="message ${isError ? 'error' : 'success'}">${msg}</div>`;
+    setTimeout(() => { box.innerHTML = ''; }, 3000);
+  }
+
+  function showLogin(){
+    document.getElementById('loginModal').style.display = 'flex';
+  }
+
+  async function doLogin(){
+    const email = document.getElementById('adminEmail').value.trim();
+    const password = document.getElementById('adminPassword').value.trim();
+
+    if (!email || !password) {
+      return showMessage("ایمیل و رمز عبور را وارد کنید", true);
+    }
+
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      return showMessage("ورود ناموفق: " + error.message, true);
+    }
+
+    currentUser = data.user;
+
+    if (currentUser.id !== ADMIN_UID) {
+      await supabaseClient.auth.signOut();
+      currentUser = null;
+      return showMessage("شما ادمین نیستید", true);
+    }
+
+    document.getElementById('loginModal').style.display = 'none';
+    document.getElementById('adminSection').style.display = 'block';
+    document.getElementById('adminIcon').classList.add('admin-logged');
+    showMessage("✅ ورود موفقیت‌آمیز بود");
+  }
+
+  fetchMovies();
+</script>
+</body>
+</html>
