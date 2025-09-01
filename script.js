@@ -29,14 +29,14 @@ const menuOverlay = document.getElementById('menuOverlay');
 menuBtn.addEventListener('click', () => {
   sideMenu.classList.add('active');
   menuOverlay.classList.add('active');
+  document.body.classList.add('no-scroll');
 });
 
-menuOverlay.addEventListener('click', closeMenu);
-function closeMenu() {
+menuOverlay.addEventListener('click', () => {
   sideMenu.classList.remove('active');
   menuOverlay.classList.remove('active');
-}
-
+  document.body.classList.remove('no-scroll');
+});
 // جست‌وجو و نمایش فیلم‌ها
 function renderMovies() {
   const q = document.getElementById('search').value.toLowerCase();

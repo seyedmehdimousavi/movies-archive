@@ -103,19 +103,43 @@ body.dark .search-bar {
 .side-menu {
   position: fixed;
   top: 0;
-  left: -300px;
+  left: -300px; /* پیش‌فرض بیرون صفحه */
   width: 300px;
   height: 100%;
   background: var(--card-bg);
   backdrop-filter: blur(10px);
   padding: 16px;
   box-shadow: 2px 0 12px rgba(0,0,0,0.22);
-  transition: left 0.28s ease;
+  transition: left 0.3s ease;
   z-index: 100;
-  overflow-y: auto; /* اسکرول داخلی منو */
+  overflow-y: auto;
 }
+
 .side-menu.active {
-  left: 0;
+  left: 0; /* وقتی کلاس active اضافه شد، بیاد تو صفحه */
+}
+
+/* بخش لینک تلگرام در پایین منو */
+.telegram-link {
+  position: sticky;
+  bottom: 16px; /* فاصله از پایین منو (بالای تسک‌بار) */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: rgba(0,0,0,0.05);
+  border-radius: 6px;
+}
+
+.telegram-link img {
+  width: 24px;
+  height: 24px;
+}
+
+.telegram-link a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: bold;
 }
 
 .genre-grid {
@@ -242,4 +266,72 @@ body.dark .search-bar {
   border: none;
   border-radius: 6px;
   cursor: pointer;
+}
+/* لایه تاریک پشت منو */
+.menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.25s ease, visibility 0s linear 0.25s;
+  z-index: 90;
+}
+
+.menu-overlay.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity 0.25s ease, visibility 0s;
+}
+
+/* منوی کناری: کاملاً مخفی در حالت پیش‌فرض */
+.side-menu {
+  position: fixed;
+  top: 0;
+  left: 0;                 /* ثابت کنار چپ */
+  width: 300px;
+  max-width: 86vw;
+  height: 100%;
+  background: var(--card-bg);
+  backdrop-filter: blur(10px);
+  box-shadow: 2px 0 12px rgba(0,0,0,0.22);
+  padding: 16px;
+  overflow-y: auto;
+  z-index: 100;
+
+  /* پنهان‌سازی واقعی بدون “سرک کشیدن” */
+  transform: translateX(-100%);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  /* انیمیشن نرم */
+  transition:
+    transform 0.28s ease,
+    opacity 0.28s ease,
+    visibility 0s linear 0.28s; /* visibility بعد از اتمام انیمیشن تغییر کنه */
+  will-change: transform, opacity;
+}
+
+.side-menu.active {
+  transform: translateX(0);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    transform 0.28s ease,
+    opacity 0.28s ease,
+    visibility 0s; /* بلافاصله قابل مشاهده شود */
+}
+
+/* جلوگیری از اسکرول بدنه هنگام باز بودن منو */
+body.no-scroll {
+  overflow: hidden;
+}
+
+/* اگر ناخواسته margin داشت، حذف شود */
+.side-menu, .side-menu * {
+  margin-top: 0;
 }

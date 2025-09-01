@@ -15,7 +15,7 @@
   <!-- هدر -->
   <header class="main-header">
     <div class="search-bar">
-      <button id="menuBtn" class="icon-inside">&#9776;</button>
+      <button id="menuBtn" class="menu-btn" aria-label="menu">☰</button>
       <input type="text" id="search" placeholder="Search" oninput="renderMovies()">
       <button id="profileBtn" class="icon-inside">👤</button>
     </div>
@@ -24,10 +24,18 @@
 
   <!-- منوی همبرگری -->
   <div id="menuOverlay" class="menu-overlay"></div>
-  <nav id="sideMenu" class="side-menu">
-    <h3>🎭 ژانرها</h3>
-    <div id="genreGrid" class="genre-grid"></div>
-  </nav>
+
+<nav id="sideMenu" class="side-menu">
+  <h3>🎭 ژانرها</h3>
+  <div id="genreGrid" class="genre-grid"></div>
+
+  <!-- لینک تلگرام در انتهای منو -->
+  <div class="telegram-link" style="margin-top:16px; padding-top:10px; border-top:1px solid rgba(0,0,0,0.1); display:flex; align-items:center; gap:8px;">
+    <img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png" alt="Telegram" width="24" height="24">
+    <a href="https://t.me/+k9x0azX1dFk4NWVk" target="_blank" rel="noopener">telegram channel link</a>
+  </div>
+</nav>
+
 
   <!-- محتوای اصلی -->
   <div class="container">
