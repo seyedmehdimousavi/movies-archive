@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🎬 Movies Archive</title>
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn&display=swap" rel="stylesheet">
-  <!-- فایل استایل -->
   <link rel="stylesheet" href="style.css">
-  <!-- کتابخانه Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -24,18 +22,14 @@
 
   <!-- منوی همبرگری -->
   <div id="menuOverlay" class="menu-overlay"></div>
-
-<nav id="sideMenu" class="side-menu">
-  <h3>🎭 ژانرها</h3>
-  <div id="genreGrid" class="genre-grid"></div>
-
-  <!-- لینک تلگرام در انتهای منو -->
-  <div class="telegram-link" style="margin-top:16px; padding-top:10px; border-top:1px solid rgba(0,0,0,0.1); display:flex; align-items:center; gap:8px;">
-    <img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png" alt="Telegram" width="24" height="24">
-    <a href="https://t.me/+k9x0azX1dFk4NWVk" target="_blank" rel="noopener">telegram channel link</a>
-  </div>
-</nav>
-
+  <nav id="sideMenu" class="side-menu">
+    <h3>🎭 ژانرها</h3>
+    <div id="genreGrid" class="genre-grid"></div>
+    <div class="telegram-link" style="margin-top:16px; padding-top:10px; border-top:1px solid rgba(0,0,0,0.1); display:flex; align-items:center; gap:8px;">
+      <img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png" alt="Telegram" width="24" height="24">
+      <a href="https://t.me/+k9x0azX1dFk4NWVk" target="_blank" rel="noopener">telegram channel link</a>
+    </div>
+  </nav>
 
   <!-- محتوای اصلی -->
   <div class="container">
@@ -43,26 +37,6 @@
     <div id="moviesGrid" class="movies-grid"></div>
   </div>
 
-  <!-- پنل ادمین -->
-  <section id="adminProfile" class="hidden">
-    <h2>پنل ادمین</h2>
-    <form id="addMovieForm">
-      <input type="text" id="title" placeholder="Title" />
-      <input type="file" id="coverFile" accept="image/*" />
-      <input type="text" id="link" placeholder="File Link" />
-      <textarea id="synopsis" placeholder="Synopsis"></textarea>
-      <input type="text" id="director" placeholder="Director" />
-      <input type="text" id="product" placeholder="Product" />
-      <input type="text" id="stars" placeholder="Stars" />
-      <input type="text" id="imdb" placeholder="IMDB" />
-      <input type="text" id="release_info" placeholder="Release Info" />
-      <input type="text" id="genre" placeholder="Genre" />
-      <button type="submit">ثبت و ارسال</button>
-    </form>
-    <div id="movieList"></div>
-  </section>
-
-  <!-- فایل اسکریپت -->
   <script src="script.js"></script>
 </body>
 </html>

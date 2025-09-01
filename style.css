@@ -7,9 +7,20 @@
 }
 
 body.dark {
-  --bg: #121212;
-  --text: #eee;
-  --card-bg: rgba(30,30,30,0.6);
+  background-color: #121212e8;
+  color: #f1f1f1;
+}
+
+body.dark .movie-card {
+  background-color: #1e1e1e;
+  color: #f1f1f1;
+}
+
+body.dark input,
+body.dark textarea {
+  background-color: #1e1e1e;
+  color: #f1f1f1;
+  border-color: #444;
 }
 
 body {
@@ -334,4 +345,105 @@ body.no-scroll {
 /* اگر ناخواسته margin داشت، حذف شود */
 .side-menu, .side-menu * {
   margin-top: 0;
+}
+:root {
+  --md3-primary: #6750a4;
+  --md3-on-primary: #fff;
+  --md3-surface: #fff;
+  --md3-on-surface: #1c1b1f;
+  --md3-outline: #79747e;
+}
+
+body {
+  font-family: 'Vazirmatn', sans-serif;
+  background: var(--md3-surface);
+  color: var(--md3-on-surface);
+  margin: 0;
+  padding: 0;
+}
+
+.admin-container {
+  max-width: 900px;
+  margin: auto;
+  padding: 16px;
+}
+
+.md3-card {
+  background: var(--md3-surface);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.md3-title {
+  font-size: 1.5rem;
+  margin-bottom: 16px;
+}
+
+.md3-field {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.md3-field input,
+.md3-field textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--md3-outline);
+  border-radius: 8px;
+  outline: none;
+  font-size: 1rem;
+}
+
+.md3-field label {
+  position: absolute;
+  top: -8px;
+  left: 12px;
+  background: var(--md3-surface);
+  padding: 0 4px;
+  font-size: 0.8rem;
+  color: var(--md3-outline);
+}
+
+.md3-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 24px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.md3-btn.primary {
+  background: var(--md3-primary);
+  color: var(--md3-on-primary);
+}
+
+.md3-list {
+  margin-top: 16px;
+}
+
+.md3-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid var(--md3-outline);
+}
+
+.md3-list-item button {
+  margin-left: 8px;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.md3-list-item .edit-btn {
+  background: #03dac6;
+  color: #000;
+}
+
+.md3-list-item .delete-btn {
+  background: #b3261e;
+  color: #fff;
 }

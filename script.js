@@ -17,36 +17,58 @@ supabase.auth.getSession().then(({ data }) => {
 });
 
 // حالت شب/روز
-document.getElementById('themeToggle').addEventListener('click', () => {
-  document.body.classList.toggle('dark');
-});
+const themeToggle = document.getElementById('themeToggle');
+
+if (themeToggle) {
+  themeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark');
+
+    // ذخیره وضعیت در localStorage برای حفظ حالت بعد از رفرش
+    if (document.body.classList.contains('dark')) {
+      localStorage.setItem('theme', 'dark');
+    } else {
+      localStorage.setItem('theme', 'light');
+    }
+  });
+}
+
+// وقتی صفحه لود میشه، حالت ذخیره‌شده رو اعمال کن
+if (localStorage.getItem('theme') === 'dark') {
+  document.body.classList.add('dark');
+}
 
 // منوی همبرگری
 const menuBtn = document.getElementById('menuBtn');
 const sideMenu = document.getElementById('sideMenu');
 const menuOverlay = document.getElementById('menuOverlay');
+if (menuBtn && sideMenu && menuOverlay) {
+  menuBtn.addEventListener('click', () => {
+    sideMenu.classList.add('active');
+    menuOverlay.classList.add('active');
+    document.body.classList.add('no-scroll');
+  });
+  menuOverlay.addEventListener('click', () => {
+    sideMenu.classList.remove('active');
+    menuOverlay.classList.remove('active');
+    document.body.classList.remove('no-scroll');
+  });
+}
 
-menuBtn.addEventListener('click', () => {
-  sideMenu.classList.add('active');
-  menuOverlay.classList.add('active');
-  document.body.classList.add('no-scroll');
-});
-
-menuOverlay.addEventListener('click', () => {
-  sideMenu.classList.remove('active');
-  menuOverlay.classList.remove('active');
-  document.body.classList.remove('no-scroll');
-});
 // جست‌وجو و نمایش فیلم‌ها
 function renderMovies() {
-  const q = document.getElementById('search').value.toLowerCase();
+  const searchInput = document.getElementById('search');
   const grid = document.getElementById('moviesGrid');
   const count = document.getElementById('movieCount');
+  if (!searchInput || !grid || !count) return;
+
+  const q = searchInput.value.toLowerCase();
   const filtered = movies.filter(m =>
     Object.values(m).some(val => val && val.toLowerCase().includes(q))
   );
+
   grid.innerHTML = '';
   count.innerText = `🎞️ تعداد فیلم‌ها: ${filtered.length}`;
+
   filtered.forEach(m => {
     const genres = m.genre?.split(' ') || [];
     const genreLinks = genres.map(g => `<a href="#" onclick="searchGenre('${g}')">${g}</a>`).join(' ');
@@ -58,8 +80,8 @@ function renderMovies() {
         </div>
         <div class="movie-info">
           <div class="movie-title">${m.title}</div>
-         <span class="field-label">📝 Synopsis:</span>
-<div class="field-quote">${m.synopsis || '-'}</div>
+          <span class="field-label">📝 Synopsis:</span>
+          <div class="field-quote">${m.synopsis || '-'}</div>
           <span class="field-label">🎬 Director:</span>
           <div class="field-quote">${m.director || '-'}</div>
           <span class="field-label">🌍 Product:</span>
@@ -78,22 +100,23 @@ function renderMovies() {
     `;
   });
 }
-// جست‌وجو با کلیک روی ژانر
+
 function searchGenre(g) {
-  document.getElementById('search').value = g;
+  const searchInput = document.getElementById('search');
+  if (!searchInput) return;
+  searchInput.value = g;
   renderMovies();
-  closeMenu();
 }
 
-// ساخت لیست ژانرها
 function buildGenreGrid() {
+  const grid = document.getElementById('genreGrid');
+  if (!grid) return;
   const genreSet = new Set();
   movies.forEach(m => {
     if (m.genre) {
       m.genre.split(' ').forEach(g => genreSet.add(g));
     }
   });
-  const grid = document.getElementById('genreGrid');
   grid.innerHTML = '';
   [...genreSet].sort().forEach(g => {
     const div = document.createElement('div');
@@ -104,163 +127,194 @@ function buildGenreGrid() {
   });
 }
 
-// دکمه پروفایل
-document.getElementById('profileBtn').addEventListener('click', () => {
-  if (!currentUser || currentUser.id !== ADMIN_UID) {
-    const email = prompt("ایمیل ادمین:");
-    const password = prompt("رمز عبور:");
-    if (email && password) {
-      supabase.auth.signInWithPassword({ email, password }).then(({ data, error }) => {
-        if (error) {
-          alert("❌ ورود ناموفق");
-        } else {
-          currentUser = data.user;
-          if (currentUser.id === ADMIN_UID) {
-            alert("✅ ورود موفق");
-            document.getElementById('adminProfile').classList.remove('hidden');
-          } else {
-            alert("❌ شما ادمین نیستید");
-          }
-        }
-      });
-    }
-  } else {
-    document.getElementById('adminProfile').classList.toggle('hidden');
-  }
-});
-
-// افزودن یا ویرایش فیلم
-document.getElementById('addMovieForm').addEventListener('submit', async e => {
-  e.preventDefault();
-  if (!currentUser || currentUser.id !== ADMIN_UID) {
-    return alert("شما اجازه این کار را ندارید");
-  }
-
-  let coverUrl = '';
-  const coverFile = document.getElementById('coverFile').files[0];
-  if (coverFile) {
-    const { data: storageData, error: storageError } = await supabase
-      .storage
-      .from('covers')
-      .upload(`public/${Date.now()}_${coverFile.name}`, coverFile, { upsert: true });
-    if (storageError) {
-      alert('❌ خطا در آپلود کاور');
-      console.error(storageError);
-      return;
-    }
-    const { data: publicUrlData } = supabase
-      .storage
-      .from('covers')
-      .getPublicUrl(storageData.path);
-    coverUrl = publicUrlData.publicUrl;
-  }
-
-  const movie = {
-    title: document.getElementById('title').value,
-    cover: coverUrl,
-    link: document.getElementById('link').value,
-    synopsis: document.getElementById('synopsis').value,
-    director: document.getElementById('director').value,
-    product: document.getElementById('product').value,
-    stars: document.getElementById('stars').value,
-    imdb: document.getElementById('imdb').value,
-    release_info: document.getElementById('release_info').value,
-    genre: document.getElementById('genre').value
-  };
-
-  if (e.target.dataset.editId) {
-    const { error } = await supabase
-      .from('movies')
-      .update(movie)
-      .eq('id', e.target.dataset.editId);
-    if (error) {
-      alert('❌ خطا در ویرایش فیلم');
-      console.error(error);
+// دکمه پروفایل (در index.html → رفتن به admin.html)
+const profileBtn = document.getElementById('profileBtn');
+if (profileBtn) {
+  profileBtn.addEventListener('click', async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session && session.user && session.user.id === ADMIN_UID) {
+      window.location.href = 'admin.html';
     } else {
-      alert('✅ فیلم ویرایش شد');
-      e.target.removeAttribute('data-edit-id');
+      alert("لطفاً ابتدا وارد شوید");
     }
-  } else {
-    const { error } = await supabase.from('movies').insert([movie]);
-    if (error) {
-      alert('❌ خطا در افزودن فیلم');
-      console.error(error);
-    } else {
-      alert('✅ فیلم اضافه شد');
-    }
-  }
-
-  fetchMovies();
-  document.getElementById('addMovieForm').reset();
-});
-
-// حذف فیلم
-async function deleteMovie(id) {
-  if (!currentUser || currentUser.id !== ADMIN_UID) {
-    return alert("شما اجازه این کار را ندارید");
-  }
-  if (!confirm('آیا از حذف این فیلم مطمئن هستید؟')) return;
-  const { error } = await supabase.from('movies').delete().eq('id', id);
-  if (error) {
-    alert('❌ خطا در حذف فیلم');
-    console.error(error);
-  } else {
-    alert('✅ فیلم حذف شد');
-    fetchMovies();
-  }
-}
-
-// ویرایش فیلم
-function editMovie(movie) {
-  if (!currentUser || currentUser.id !== ADMIN_UID) {
-    return alert("شما اجازه این کار را ندارید");
-  }
-  document.getElementById('title').value = movie.title;
-  document.getElementById('link').value = movie.link;
-  document.getElementById('synopsis').value = movie.synopsis;
-  document.getElementById('director').value = movie.director;
-  document.getElementById('product').value = movie.product;
-  document.getElementById('stars').value = movie.stars;
-  document.getElementById('imdb').value = movie.imdb;
-  document.getElementById('release_info').value = movie.release_info;
-  document.getElementById('genre').value = movie.genre;
-  document.getElementById('addMovieForm').dataset.editId = movie.id;
-  document.getElementById('adminProfile').classList.remove('hidden');
-}
-
-// لیست فیلم‌ها در پنل ادمین
-function renderAdminMovieList() {
-  const list = document.getElementById('movieList');
-  list.innerHTML = '';
-  movies.forEach(m => {
-    const div = document.createElement('div');
-    div.style.display = 'flex';
-    div.style.justifyContent = 'space-between';
-    div.style.alignItems = 'center';
-    div.style.padding = '6px 0';
-    div.innerHTML = `
-      <span>${m.title}</span>
-      <div>
-        <button onclick='editMovie(${JSON.stringify(m)})'>ویرایش</button>
-        <button onclick='deleteMovie(${m.id})'>حذف</button>
-      </div>
-    `;
-    list.appendChild(div);
   });
 }
 
-// دریافت فیلم‌ها از دیتابیس
+// کدهای مخصوص پنل ادمین (فقط اگر المنت‌ها وجود دارن)
+const addMovieForm = document.getElementById('addMovieForm');
+const movieList = document.getElementById('movieList');
+
+if (addMovieForm && movieList) {
+
+  addMovieForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!currentUser || currentUser.id !== ADMIN_UID) {
+      return alert("شما اجازه این کار را ندارید");
+    }
+
+    const form = e.target;
+    const id = form.dataset.editId;
+    const coverFile = document.getElementById('coverFile').files[0];
+    let coverUrl = '';
+
+    if (coverFile) {
+      const { data: storageData, error: storageError } = await supabase
+        .storage
+        .from('covers')
+        .upload(`public/${Date.now()}_${coverFile.name}`, coverFile, { upsert: true });
+      if (storageError) {
+        alert('❌ خطا در آپلود کاور');
+        console.error(storageError);
+        return;
+      }
+      const { data: publicUrlData } = supabase
+        .storage
+        .from('covers')
+        .getPublicUrl(storageData.path);
+      coverUrl = publicUrlData.publicUrl;
+    }
+
+    if (id) {
+      const oldMovie = movies.find(m => String(m.id) === String(id));
+      if (!oldMovie) {
+        alert("فیلم پیدا نشد");
+        return;
+      }
+      const updateData = {};
+      const fields = ['title', 'link', 'synopsis', 'director', 'product', 'stars', 'imdb', 'release_info', 'genre'];
+      fields.forEach(field => {
+        const newValue = document.getElementById(field).value.trim();
+        if (newValue && newValue !== (oldMovie[field] || '')) {
+          updateData[field] = newValue;
+        }
+      });
+      if (coverUrl && coverUrl !== oldMovie.cover) {
+        updateData.cover = coverUrl;
+      }
+      if (Object.keys(updateData).length === 0) {
+        alert("ℹ️ هیچ تغییری اعمال نشد");
+        return;
+      }
+      const { error } = await supabase.from('movies').update(updateData).eq('id', id);
+      if (error) {
+        alert('❌ خطا در ویرایش فیلم');
+        console.error(error);
+      } else {
+        alert('✅ فیلم ویرایش شد');
+        form.removeAttribute('data-edit-id');
+      }
+    } else {
+      if (!coverUrl) {
+        alert("لطفاً کاور را انتخاب کنید");
+        return;
+      }
+            const movie = {
+        title: document.getElementById('title').value,
+        cover: coverUrl,
+        link: document.getElementById('link').value,
+        synopsis: document.getElementById('synopsis').value,
+        director: document.getElementById('director').value,
+        product: document.getElementById('product').value,
+        stars: document.getElementById('stars').value,
+        imdb: document.getElementById('imdb').value,
+        release_info: document.getElementById('release_info').value,
+        genre: document.getElementById('genre').value
+      };
+
+      const { error } = await supabase.from('movies').insert([movie]);
+      if (error) {
+        alert('❌ خطا در افزودن فیلم');
+        console.error(error);
+      } else {
+        alert('✅ فیلم اضافه شد');
+      }
+    }
+
+    fetchMovies();
+    form.reset();
+  });
+
+  // رندر لیست فیلم‌ها در پنل ادمین
+  function renderAdminMovieList() {
+    movieList.innerHTML = '';
+    movies.forEach(m => {
+      const row = document.createElement('div');
+      row.style.display = 'flex';
+      row.style.justifyContent = 'space-between';
+      row.style.alignItems = 'center';
+      row.style.padding = '6px 0';
+      row.innerHTML = `
+        <span>${m.title}</span>
+        <div>
+          <button class="btn-edit" data-id="${m.id}">ویرایش</button>
+          <button class="btn-delete" data-id="${m.id}">حذف</button>
+        </div>
+      `;
+      movieList.appendChild(row);
+    });
+  }
+  
+
+  // مدیریت کلیک روی دکمه‌های ویرایش و حذف
+  movieList.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+
+    const id = btn.dataset.id;
+    if (!id) return;
+
+    if (btn.classList.contains('btn-edit')) {
+      const movie = movies.find(m => String(m.id) === String(id));
+      if (movie) editMovie(movie);
+    }
+
+    if (btn.classList.contains('btn-delete')) {
+      deleteMovie(id);
+    }
+  });
+
+  // پر کردن فرم برای ویرایش
+  function editMovie(movie) {
+    document.getElementById('title').value = movie.title || '';
+    document.getElementById('link').value = movie.link || '';
+    document.getElementById('synopsis').value = movie.synopsis || '';
+    document.getElementById('director').value = movie.director || '';
+    document.getElementById('product').value = movie.product || '';
+    document.getElementById('stars').value = movie.stars || '';
+    document.getElementById('imdb').value = movie.imdb || '';
+    document.getElementById('release_info').value = movie.release_info || '';
+    document.getElementById('genre').value = movie.genre || '';
+    addMovieForm.dataset.editId = movie.id;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // حذف فیلم
+  async function deleteMovie(id) {
+    if (!confirm("آیا از حذف این فیلم مطمئن هستید؟")) return;
+    const { error } = await supabase.from('movies').delete().eq('id', id);
+    if (error) {
+      alert('❌ خطا در حذف فیلم');
+      console.error(error);
+    } else {
+      alert('✅ فیلم حذف شد');
+      fetchMovies();
+    }
+  }
+}
+
+// گرفتن لیست فیلم‌ها (برای هر دو صفحه)
 async function fetchMovies() {
-  const { data, error } = await supabase.from('movies').select('*');
+  const { data, error } = await supabase.from('movies').select('*').order('id', { ascending: false });
   if (error) {
-    console.error('❌ خطا در دریافت فیلم‌ها:', error);
+    console.error(error);
     return;
   }
   movies = data;
   renderMovies();
-  buildGenreGrid();
-  renderAdminMovieList();
+  if (document.getElementById('movieList')) {
+    renderAdminMovieList();
+  }
 }
 
-// شروع
+// بارگذاری اولیه
 fetchMovies();
