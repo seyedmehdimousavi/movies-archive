@@ -10,33 +10,57 @@
 </head>
 <body>
 
-  <!-- هدر -->
-  <header class="main-header">
-    <div class="search-bar">
-      <button id="menuBtn" class="menu-btn" aria-label="menu">☰</button>
-      <input type="text" id="search" placeholder="Search" oninput="renderMovies()">
-      <button id="profileBtn" class="icon-inside">👤</button>
-    </div>
-    <button id="themeToggle" class="icon-btn">🌙</button>
-  </header>
-
-  <!-- منوی همبرگری -->
-  <div id="menuOverlay" class="menu-overlay"></div>
-  <nav id="sideMenu" class="side-menu">
-    <h3>🎭 ژانرها</h3>
-    <div id="genreGrid" class="genre-grid"></div>
-    <div class="telegram-link" style="margin-top:16px; padding-top:10px; border-top:1px solid rgba(0,0,0,0.1); display:flex; align-items:center; gap:8px;">
-      <img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png" alt="Telegram" width="24" height="24">
-      <a href="https://t.me/+k9x0azX1dFk4NWVk" target="_blank" rel="noopener">telegram channel link</a>
-    </div>
-  </nav>
-
-  <!-- محتوای اصلی -->
-  <div class="container">
-    <div id="movieCount">🎞️ تعداد فیلم‌ها: 0</div>
-    <div id="moviesGrid" class="movies-grid"></div>
+<header class="main-header">
+  <div class="search-bar">
+    <button id="menuBtn" class="menu-btn" aria-label="menu">☰</button>
+    <input type="text" id="search" placeholder="Search" oninput="renderMovies()">
+    <button id="profileBtn" class="icon-inside">👤</button>
   </div>
+  <button id="themeToggle" class="icon-btn">🌙</button>
+</header>
 
-  <script src="script.js"></script>
+<div id="menuOverlay" class="menu-overlay"></div>
+<nav id="sideMenu" class="side-menu">
+  <h3>🎭 ژانرها</h3>
+  <div id="genreGrid" class="genre-grid"></div>
+  <div class="telegram-link">
+    <img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png" alt="Telegram" width="24" height="24">
+    <a href="https://t.me/+k9x0azX1dFk4NWVk" target="_blank" rel="noopener">telegram channel link</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div id="movieCount">🎞️ تعداد فیلم‌ها: 0</div>
+  <div id="moviesGrid" class="movies-grid"></div>
+</div>
+
+<!-- پاپ‌آپ ورود -->
+<div id="loginModal" class="login-modal">
+  <div class="login-box">
+    <span id="closeLoginModal" class="close-btn">&times;</span>
+    <h2>ورود ادمین</h2>
+    <form id="loginForm">
+      <div class="input-group">
+        <span class="icon">👤</span>
+        <input type="email" id="loginEmail" placeholder="User name / Email" required>
+      </div>
+      <div class="input-group">
+        <span class="icon">🔒</span>
+        <input type="password" id="loginPassword" placeholder="Password" required>
+      </div>
+      <button type="submit" class="login-btn">
+        LOG IN NOW <span class="arrow">➜</span>
+      </button>
+    </form>
+    <div class="social-login">
+      <span>log in via</span>
+      <a href="#" id="loginWithGmail" title="Login with Gmail">
+        <img src="https://cdn-icons-png.flaticon.com/512/281/281764.png" alt="Gmail" width="32" height="32">
+      </a>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>

@@ -1,69 +1,82 @@
-// اتصال به Supabase
+// =========================
+// script.js (full version)
+// =========================
+
+// Supabase client
 const supabase = window.supabase.createClient(
   'https://gwsmvcgjdodmkoqupdal.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3c212Y2dqZG9kbWtvcXVwZGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1NDczNjEsImV4cCI6MjA3MjEyMzM2MX0.OVXO9CdHtrCiLhpfbuaZ8GVDIrUlA8RdyQwz2Bk2cDY'
 );
 
-// UID ادمین
-const ADMIN_UID = "7314d471-8343-44b3-9fcc-a9ae01d99725";
+// Admin UID
+const ADMIN_UID = '7314d471-8343-44b3-9fcc-a9ae01d99725';
+
+// State
 let currentUser = null;
 let movies = [];
 
-// بررسی سشن در شروع
+// Keep session in sync
 supabase.auth.getSession().then(({ data }) => {
-  if (data.session) {
-    currentUser = data.session.user;
-  }
+  if (data.session) currentUser = data.session.user;
+});
+supabase.auth.onAuthStateChange((_event, session) => {
+  currentUser = session?.user || null;
 });
 
-// حالت شب/روز
+// =========================
+// Theme toggle (with persistence)
+// =========================
 const themeToggle = document.getElementById('themeToggle');
-
 if (themeToggle) {
   themeToggle.addEventListener('click', () => {
     document.body.classList.toggle('dark');
-
-    // ذخیره وضعیت در localStorage برای حفظ حالت بعد از رفرش
-    if (document.body.classList.contains('dark')) {
-      localStorage.setItem('theme', 'dark');
-    } else {
-      localStorage.setItem('theme', 'light');
-    }
+    localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
   });
 }
-
-// وقتی صفحه لود میشه، حالت ذخیره‌شده رو اعمال کن
 if (localStorage.getItem('theme') === 'dark') {
   document.body.classList.add('dark');
 }
 
-// منوی همبرگری
+// =========================
+// Side menu
+// =========================
 const menuBtn = document.getElementById('menuBtn');
 const sideMenu = document.getElementById('sideMenu');
 const menuOverlay = document.getElementById('menuOverlay');
-if (menuBtn && sideMenu && menuOverlay) {
-  menuBtn.addEventListener('click', () => {
-    sideMenu.classList.add('active');
-    menuOverlay.classList.add('active');
-    document.body.classList.add('no-scroll');
-  });
-  menuOverlay.addEventListener('click', () => {
-    sideMenu.classList.remove('active');
-    menuOverlay.classList.remove('active');
-    document.body.classList.remove('no-scroll');
-  });
+
+function openMenu() {
+  if (!sideMenu || !menuOverlay) return;
+  sideMenu.classList.add('active');
+  menuOverlay.classList.add('active');
+  document.body.classList.add('no-scroll');
+}
+function closeMenu() {
+  if (!sideMenu || !menuOverlay) return;
+  sideMenu.classList.remove('active');
+  menuOverlay.classList.remove('active');
+  document.body.classList.remove('no-scroll');
 }
 
-// جست‌وجو و نمایش فیلم‌ها
+if (menuBtn && sideMenu && menuOverlay) {
+  menuBtn.addEventListener('click', openMenu);
+  menuOverlay.addEventListener('click', closeMenu);
+}
+
+// =========================
+// Movies: render, search, genres
+// =========================
 function renderMovies() {
   const searchInput = document.getElementById('search');
   const grid = document.getElementById('moviesGrid');
   const count = document.getElementById('movieCount');
   if (!searchInput || !grid || !count) return;
 
-  const q = searchInput.value.toLowerCase();
+  const q = (searchInput.value || '').toLowerCase();
   const filtered = movies.filter(m =>
-    Object.values(m).some(val => val && val.toLowerCase().includes(q))
+    Object.values(m).some(val => {
+      if (val === null || val === undefined) return false;
+      return String(val).toLowerCase().includes(q);
+    })
   );
 
   grid.innerHTML = '';
@@ -71,7 +84,10 @@ function renderMovies() {
 
   filtered.forEach(m => {
     const genres = m.genre?.split(' ') || [];
-    const genreLinks = genres.map(g => `<a href="#" onclick="searchGenre('${g}')">${g}</a>`).join(' ');
+    const genreLinks = genres
+      .map(g => `<a href="#" onclick="searchGenre('${g}')">${g}</a>`)
+      .join(' ');
+
     grid.innerHTML += `
       <div class="movie-card">
         <div class="cover-container">
@@ -79,21 +95,29 @@ function renderMovies() {
           <img class="cover-image" src="${m.cover || 'https://via.placeholder.com/300x200?text=No+Image'}" alt="${m.title}">
         </div>
         <div class="movie-info">
-          <div class="movie-title">${m.title}</div>
+          <div class="movie-title">${m.title || '-'}</div>
+
           <span class="field-label">📝 Synopsis:</span>
           <div class="field-quote">${m.synopsis || '-'}</div>
+
           <span class="field-label">🎬 Director:</span>
           <div class="field-quote">${m.director || '-'}</div>
+
           <span class="field-label">🌍 Product:</span>
           <div class="field-quote">${m.product || '-'}</div>
+
           <span class="field-label">⭐️ Stars:</span>
           <div class="field-quote">${m.stars || '-'}</div>
+
           <span class="field-label">📱 IMDB:</span>
           <div class="field-quote">${m.imdb || '-'}</div>
+
           <span class="field-label">📅 Release Info:</span>
           <div class="field-quote">${m.release_info || '-'}</div>
+
           <span class="field-label">✏️ Genre:</span>
           <div class="field-quote">${genreLinks || '-'}</div>
+
           <button class="go-btn" onclick="window.open('${m.link}', '_blank')">Go to File</button>
         </div>
       </div>
@@ -101,72 +125,182 @@ function renderMovies() {
   });
 }
 
-function searchGenre(g) {
+// expose for inline onclick in cards
+window.searchGenre = function searchGenre(g) {
   const searchInput = document.getElementById('search');
   if (!searchInput) return;
   searchInput.value = g;
   renderMovies();
-}
+  closeMenu();
+};
 
 function buildGenreGrid() {
   const grid = document.getElementById('genreGrid');
   if (!grid) return;
+
   const genreSet = new Set();
   movies.forEach(m => {
-    if (m.genre) {
-      m.genre.split(' ').forEach(g => genreSet.add(g));
-    }
+    if (m.genre) m.genre.split(' ').forEach(g => genreSet.add(g));
   });
+
   grid.innerHTML = '';
   [...genreSet].sort().forEach(g => {
     const div = document.createElement('div');
     div.className = 'genre-chip';
     div.textContent = g;
-    div.onclick = () => searchGenre(g);
+    div.onclick = () => window.searchGenre(g);
     grid.appendChild(div);
   });
 }
 
-// دکمه پروفایل (در index.html → رفتن به admin.html)
+// =========================
+/* Profile -> login modal or admin */
+// =========================
 const profileBtn = document.getElementById('profileBtn');
+const loginModal = document.getElementById('loginModal');
+const closeLoginModal = document.getElementById('closeLoginModal');
+const loginForm = document.getElementById('loginForm');
+const loginWithGmail = document.getElementById('loginWithGmail');
+
 if (profileBtn) {
   profileBtn.addEventListener('click', async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session && session.user && session.user.id === ADMIN_UID) {
       window.location.href = 'admin.html';
+    } else if (loginModal) {
+      loginModal.style.display = 'block';
     } else {
-      alert("لطفاً ابتدا وارد شوید");
+      alert('لطفاً ابتدا وارد شوید'); // fallback اگر مودال در HTML نیست
     }
   });
 }
 
-// کدهای مخصوص پنل ادمین (فقط اگر المنت‌ها وجود دارن)
+if (closeLoginModal && loginModal) {
+  closeLoginModal.addEventListener('click', () => {
+    loginModal.style.display = 'none';
+  });
+  window.addEventListener('click', (e) => {
+    if (e.target === loginModal) loginModal.style.display = 'none';
+  });
+}
+
+if (loginForm && loginModal) {
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail')?.value || '';
+    const password = document.getElementById('loginPassword')?.value || '';
+
+    const submitBtn = loginForm.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'در حال ورود...';
+    }
+
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'LOG IN NOW';
+    }
+
+    if (error) {
+      alert('❌ ورود ناموفق');
+      console.error(error);
+    } else {
+      loginModal.style.display = 'none';
+      window.location.href = 'admin.html';
+    }
+  });
+}
+
+if (loginWithGmail) {
+  loginWithGmail.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/admin.html`
+      }
+    });
+    if (error) {
+      alert('❌ ورود با جیمیل ناموفق');
+      console.error(error);
+    }
+  });
+}
+
+// =========================
+// Admin-only code (runs only if admin elements exist)
+// =========================
 const addMovieForm = document.getElementById('addMovieForm');
 const movieList = document.getElementById('movieList');
+const logoutBtn = document.getElementById('logoutBtn');
+
+async function enforceAdminGuard() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session || session.user.id !== ADMIN_UID) {
+    // اگر روی admin.html هستیم و مجوز نداریم، برگرد به صفحه اصلی
+    if (addMovieForm || movieList || logoutBtn) {
+      window.location.href = 'index.html';
+    }
+    return false;
+  }
+  currentUser = session.user;
+  return true;
+}
+
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', async () => {
+    try {
+      logoutBtn.disabled = true;
+      const old = logoutBtn.textContent;
+      logoutBtn.textContent = 'در حال خروج...';
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Logout error:', error);
+        alert('❌ خطا در خروج');
+        logoutBtn.disabled = false;
+        logoutBtn.textContent = old;
+        return;
+      }
+      currentUser = null;
+      window.location.href = 'index.html';
+    } catch (e) {
+      console.error(e);
+      alert('❌ خطای غیرمنتظره در خروج');
+      logoutBtn.disabled = false;
+    }
+  });
+}
 
 if (addMovieForm && movieList) {
+  // پیش از هر کاری، مجوز ادمین
+  enforceAdminGuard();
 
   addMovieForm.addEventListener('submit', async e => {
     e.preventDefault();
-    if (!currentUser || currentUser.id !== ADMIN_UID) {
-      return alert("شما اجازه این کار را ندارید");
-    }
+    const ok = await enforceAdminGuard();
+    if (!ok) return;
 
     const form = e.target;
     const id = form.dataset.editId;
-    const coverFile = document.getElementById('coverFile').files[0];
+
+    const coverFile = document.getElementById('coverFile')?.files?.[0];
     let coverUrl = '';
 
+    // Upload cover if provided
     if (coverFile) {
       const { data: storageData, error: storageError } = await supabase
         .storage
         .from('covers')
         .upload(`public/${Date.now()}_${coverFile.name}`, coverFile, { upsert: true });
+
       if (storageError) {
         alert('❌ خطا در آپلود کاور');
         console.error(storageError);
         return;
       }
+
       const { data: publicUrlData } = supabase
         .storage
         .from('covers')
@@ -175,15 +309,17 @@ if (addMovieForm && movieList) {
     }
 
     if (id) {
+      // Edit mode
       const oldMovie = movies.find(m => String(m.id) === String(id));
       if (!oldMovie) {
-        alert("فیلم پیدا نشد");
+        alert('فیلم پیدا نشد');
         return;
       }
       const updateData = {};
       const fields = ['title', 'link', 'synopsis', 'director', 'product', 'stars', 'imdb', 'release_info', 'genre'];
       fields.forEach(field => {
-        const newValue = document.getElementById(field).value.trim();
+        const el = document.getElementById(field);
+        const newValue = (el?.value || '').trim();
         if (newValue && newValue !== (oldMovie[field] || '')) {
           updateData[field] = newValue;
         }
@@ -192,7 +328,7 @@ if (addMovieForm && movieList) {
         updateData.cover = coverUrl;
       }
       if (Object.keys(updateData).length === 0) {
-        alert("ℹ️ هیچ تغییری اعمال نشد");
+        alert('ℹ️ هیچ تغییری اعمال نشد');
         return;
       }
       const { error } = await supabase.from('movies').update(updateData).eq('id', id);
@@ -204,23 +340,23 @@ if (addMovieForm && movieList) {
         form.removeAttribute('data-edit-id');
       }
     } else {
+      // Add mode
       if (!coverUrl) {
-        alert("لطفاً کاور را انتخاب کنید");
+        alert('لطفاً کاور را انتخاب کنید');
         return;
       }
-            const movie = {
-        title: document.getElementById('title').value,
+      const movie = {
+        title: document.getElementById('title')?.value || '',
         cover: coverUrl,
-        link: document.getElementById('link').value,
-        synopsis: document.getElementById('synopsis').value,
-        director: document.getElementById('director').value,
-        product: document.getElementById('product').value,
-        stars: document.getElementById('stars').value,
-        imdb: document.getElementById('imdb').value,
-        release_info: document.getElementById('release_info').value,
-        genre: document.getElementById('genre').value
+        link: document.getElementById('link')?.value || '',
+        synopsis: document.getElementById('synopsis')?.value || '',
+        director: document.getElementById('director')?.value || '',
+        product: document.getElementById('product')?.value || '',
+        stars: document.getElementById('stars')?.value || '',
+        imdb: document.getElementById('imdb')?.value || '',
+        release_info: document.getElementById('release_info')?.value || '',
+        genre: document.getElementById('genre')?.value || ''
       };
-
       const { error } = await supabase.from('movies').insert([movie]);
       if (error) {
         alert('❌ خطا در افزودن فیلم');
@@ -230,42 +366,48 @@ if (addMovieForm && movieList) {
       }
     }
 
-    fetchMovies();
+    await fetchMovies();
     form.reset();
   });
 
-  // رندر لیست فیلم‌ها در پنل ادمین
-  function renderAdminMovieList() {
-    movieList.innerHTML = '';
-    movies.forEach(m => {
-      const row = document.createElement('div');
-      row.style.display = 'flex';
-      row.style.justifyContent = 'space-between';
-      row.style.alignItems = 'center';
-      row.style.padding = '6px 0';
-      row.innerHTML = `
-        <span>${m.title}</span>
-        <div>
-          <button class="btn-edit" data-id="${m.id}">ویرایش</button>
-          <button class="btn-delete" data-id="${m.id}">حذف</button>
-        </div>
-      `;
-      movieList.appendChild(row);
-    });
-  }
-  
+  function renderAdminMovieList(list = movies) {
+  movieList.innerHTML = '';
+  list.forEach(m => {
+    const row = document.createElement('div');
+    row.className = 'movie-item';
+    row.innerHTML = `
+      <img class="movie-cover" src="${m.cover || 'https://via.placeholder.com/60x80?text=No+Image'}" alt="${m.title}">
+      <span class="movie-title">${m.title}</span>
+      <div class="movie-actions">
+        <button class="btn-edit" data-id="${m.id}">Edit</button>
+        <button class="btn-delete" data-id="${m.id}">Delete</button>
+      </div>
+    `;
+    movieList.appendChild(row);
+  });
+}
 
-  // مدیریت کلیک روی دکمه‌های ویرایش و حذف
   movieList.addEventListener('click', (e) => {
     const btn = e.target.closest('button');
     if (!btn) return;
-
     const id = btn.dataset.id;
     if (!id) return;
 
     if (btn.classList.contains('btn-edit')) {
       const movie = movies.find(m => String(m.id) === String(id));
-      if (movie) editMovie(movie);
+      if (movie) {
+        document.getElementById('title').value = movie.title || '';
+        document.getElementById('link').value = movie.link || '';
+        document.getElementById('synopsis').value = movie.synopsis || '';
+        document.getElementById('director').value = movie.director || '';
+        document.getElementById('product').value = movie.product || '';
+        document.getElementById('stars').value = movie.stars || '';
+        document.getElementById('imdb').value = movie.imdb || '';
+        document.getElementById('release_info').value = movie.release_info || '';
+        document.getElementById('genre').value = movie.genre || '';
+        addMovieForm.dataset.editId = movie.id;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
 
     if (btn.classList.contains('btn-delete')) {
@@ -273,24 +415,11 @@ if (addMovieForm && movieList) {
     }
   });
 
-  // پر کردن فرم برای ویرایش
-  function editMovie(movie) {
-    document.getElementById('title').value = movie.title || '';
-    document.getElementById('link').value = movie.link || '';
-    document.getElementById('synopsis').value = movie.synopsis || '';
-    document.getElementById('director').value = movie.director || '';
-    document.getElementById('product').value = movie.product || '';
-    document.getElementById('stars').value = movie.stars || '';
-    document.getElementById('imdb').value = movie.imdb || '';
-    document.getElementById('release_info').value = movie.release_info || '';
-    document.getElementById('genre').value = movie.genre || '';
-    addMovieForm.dataset.editId = movie.id;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  // حذف فیلم
   async function deleteMovie(id) {
-    if (!confirm("آیا از حذف این فیلم مطمئن هستید؟")) return;
+    const ok = await enforceAdminGuard();
+    if (!ok) return;
+    if (!confirm('آیا از حذف این فیلم مطمئن هستید؟')) return;
+
     const { error } = await supabase.from('movies').delete().eq('id', id);
     if (error) {
       alert('❌ خطا در حذف فیلم');
@@ -300,21 +429,40 @@ if (addMovieForm && movieList) {
       fetchMovies();
     }
   }
+
+  // expose for conditional call in fetchMovies
+  window.renderAdminMovieList = renderAdminMovieList;
 }
 
-// گرفتن لیست فیلم‌ها (برای هر دو صفحه)
+// =========================
+// Fetch movies (shared)
+// =========================
 async function fetchMovies() {
-  const { data, error } = await supabase.from('movies').select('*').order('id', { ascending: false });
+  const { data, error } = await supabase
+    .from('movies')
+    .select('*')
+    .order('id', { ascending: false });
+
   if (error) {
-    console.error(error);
+    console.error('❌ خطا در دریافت فیلم‌ها:', error);
     return;
   }
-  movies = data;
-  renderMovies();
-  if (document.getElementById('movieList')) {
-    renderAdminMovieList();
+
+  movies = data || [];
+
+  // user page
+  if (document.getElementById('moviesGrid')) {
+    renderMovies();
+    buildGenreGrid();
+  }
+
+// admin page
+  if (document.getElementById('movieList') && typeof window.renderAdminMovieList === 'function') {
+    window.renderAdminMovieList();
   }
 }
 
-// بارگذاری اولیه
+// =========================
+// Initial load
+// =========================
 fetchMovies();
