@@ -80,7 +80,7 @@ function renderMovies() {
   );
 
   grid.innerHTML = '';
-  count.innerText = `🎞️ تعداد فیلم‌ها: ${filtered.length}`;
+  count.innerText = `🎞️ Number of movies: ${filtered.length}`;
 
   filtered.forEach(m => {
     const genres = m.genre?.split(' ') || [];
