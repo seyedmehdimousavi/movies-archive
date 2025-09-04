@@ -274,7 +274,7 @@ body.dark .search-bar .icon-inside {
   background-size: cover;
   background-position: center;
   filter: blur(20px);
-  transform: scale(1);
+  transform: scale(1.2);
 }
 
 .cover-image {
