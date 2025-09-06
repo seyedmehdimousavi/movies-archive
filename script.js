@@ -71,17 +71,22 @@ function renderMovies() {
   const count = document.getElementById('movieCount');
   if (!searchInput || !grid || !count) return;
 
-  const q = searchInput.value.toLowerCase();
+  const q = (searchInput.value || '').toLowerCase();
+
   const filtered = movies.filter(m =>
-    Object.values(m).some(val => val && val.toLowerCase().includes(q))
+    Object.values(m).some(val => typeof val === 'string' && val.toLowerCase().includes(q))
   );
 
   grid.innerHTML = '';
-  count.innerText = `🎞️ Number of movies: ${filtered.length}`;
+  count.innerText = `🎞️ تعداد فیلم‌ها: ${filtered.length}`;
 
   filtered.forEach(m => {
     const genres = m.genre?.split(' ') || [];
     const genreLinks = genres.map(g => `<a href="#" onclick="searchGenre('${g}')">${g}</a>`).join(' ');
+
+    // تمیز کردن متن Synopsis
+    const cleanSynopsis = (m.synopsis || '-').replace(/^\s+/, '').replace(/\s+$/, '');
+
     grid.innerHTML += `
       <div class="movie-card">
         <div class="cover-container">
@@ -92,7 +97,11 @@ function renderMovies() {
           <div class="movie-title">${m.title || '-'}</div>
 
           <span class="field-label">📝 Synopsis:</span>
-          <div class="field-quote">${m.synopsis || '-'}</div>
+          <div class="field-quote synopsis-quote">
+            <div class="quote-text">${cleanSynopsis}</div>
+            <button class="quote-toggle-btn">More</button>
+          </div>
+
           <span class="field-label">🎬 Director:</span>
           <div class="field-quote">${m.director || '-'}</div>
 
@@ -116,9 +125,61 @@ function renderMovies() {
       </div>
     `;
   });
+
+  // 🎯 فعال‌سازی More/Less برای Synopsis
+  document.querySelectorAll('.synopsis-quote').forEach(quote => {
+    const textEl = quote.querySelector('.quote-text');
+    const btn = quote.querySelector('.quote-toggle-btn');
+    const fullText = textEl.textContent.trim();
+
+    if (fullText.length > 200) {
+      const shortText = fullText.substring(0, 200) + '...';
+      textEl.textContent = shortText;
+      quote.classList.add('collapsed');
+      quote.style.overflow = 'hidden';
+      quote.style.maxHeight = '120px';
+      quote.style.transition = 'max-height 0.35s ease';
+
+      const toggle = () => {
+        if (quote.classList.contains('collapsed')) {
+          textEl.textContent = fullText;
+          const fullH = textEl.scrollHeight + 16; // ارتفاع متن + کمی پدینگ
+          quote.style.maxHeight = fullH + 'px';
+          quote.classList.remove('collapsed');
+          btn.textContent = 'Less';
+        } else {
+          textEl.textContent = shortText;
+          quote.style.maxHeight = '120px';
+          quote.classList.add('collapsed');
+          btn.textContent = 'More';
+        }
+      };
+
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        toggle();
+      });
+
+      quote.addEventListener('click', e => {
+        if (!e.target.classList.contains('quote-toggle-btn')) {
+          toggle();
+        }
+      });
+
+      quote.addEventListener('transitionend', e => {
+        if (e.propertyName === 'max-height' && !quote.classList.contains('collapsed')) {
+          quote.style.maxHeight = 'none';
+        }
+      });
+
+    } else {
+      btn.remove();
+    }
+  });
 }
 
-function searchGenre(g) {
+// expose for inline onclick in cards
+window.searchGenre = function searchGenre(g) {
   const searchInput = document.getElementById('search');
   if (!searchInput) return;
   searchInput.value = g;
