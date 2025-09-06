@@ -1,39 +1,41 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="fa" dir="ltr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>پنل ادمین</title>
+  <title>Admin Panel</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-  <header class="admin-header">
-    <h1>پنل مدیریت</h1>
-    <a href="index.html">بازگشت به سایت</a>
-  </header>
+<header class="admin-header">
+  <h1>Admin Panel</h1>
+  <div class="admin-actions">
+    <a href="index.html" class="back-link">Return to website</a>
+    <button id="logoutBtn" class="logout-btn" type="button">Exit</button>
+  </div>
+</header>
 
-  <main>
-    <section id="adminProfile">
-      <h2>مدیریت فیلم‌ها</h2>
-      <form id="addMovieForm">
-        <input type="text" id="title" placeholder="Title" />
-        <input type="file" id="coverFile" accept="image/*" />
-        <input type="text" id="link" placeholder="File Link" />
-        <textarea id="synopsis" placeholder="Synopsis"></textarea>
-        <input type="text" id="director" placeholder="Director" />
-        <input type="text" id="product" placeholder="Product" />
-        <input type="text" id="stars" placeholder="Stars" />
-        <input type="text" id="imdb" placeholder="IMDB" />
-        <input type="text" id="release_info" placeholder="Release Info" />
-        <input type="text" id="genre" placeholder="Genre" />
-        <button type="submit">ثبت و ارسال</button>
-      </form>
-      <div id="movieList"></div>
-    </section>
-  </main>
+<main>
+  <section id="adminProfile">
+    <h2>Post management</h2>
+    <form id="addMovieForm">
+      <input type="text" id="title" placeholder="Title" />
+      <input type="file" id="coverFile" accept="image/*" />
+      <input type="text" id="link" placeholder="File Link" />
+      <textarea id="synopsis" placeholder="Synopsis"></textarea>
+      <input type="text" id="director" placeholder="Director" />
+      <input type="text" id="product" placeholder="Product" />
+      <input type="text" id="stars" placeholder="Stars" />
+      <input type="text" id="imdb" placeholder="IMDB" />
+      <input type="text" id="release_info" placeholder="Release Info" />
+      <input type="text" id="genre" placeholder="Genre" />
+      <button type="submit">ثبت و ارسال</button>
+    </form>
+    <div id="movieList"></div>
+  </section>
+</main>
 
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
-</html>

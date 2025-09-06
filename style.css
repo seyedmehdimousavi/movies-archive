@@ -1,14 +1,70 @@
+/* =========================
+   Variables
+========================= */
 :root {
   --primary: #6200ee;
   --bg: #f5f5f5;
   --text: #222;
-  --card-bg: rgba(255,255,255,0.7);
+  --card-bg: rgba(255, 255, 255, 0.7);
   --blur: 10px;
 }
 
+/* =========================
+   Reset, base, dark mode
+========================= */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: 'Vazirmatn', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+  transition: background 0.3s, color 0.3s;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  font-family: inherit;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+body.no-scroll {
+  overflow: hidden;
+}
+
+/* Dark mode */
 body.dark {
   background-color: #121212e8;
   color: #f1f1f1;
+}
+
+body.dark .main-header {
+  background: rgba(20, 20, 20, 0.4);
+}
+
+body.dark .search-bar {
+  background: rgba(50, 50, 50, 0.6);
 }
 
 body.dark .movie-card {
@@ -23,54 +79,36 @@ body.dark textarea {
   border-color: #444;
 }
 
-body {
-  font-family: 'Vazirmatn', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  margin: 0;
-  transition: background 0.3s, color 0.3s;
+body.dark .field-quote {
+  background: #263238;
+  border-left: 4px solid #90caf9;
+  color: #e3f2fd;
 }
 
-/* ===== Header ===== */
+/* =========================
+   Header
+========================= */
 .main-header {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
   backdrop-filter: blur(var(--blur));
-  background: rgba(255,255,255,0.4);
+  background: rgba(255, 255, 255, 0.4);
   position: sticky;
   top: 0;
   z-index: 100;
-}
-body.dark .main-header {
-  background: rgba(20,20,20,0.4);
 }
 
 .search-bar {
   flex: 1;
   display: flex;
   align-items: center;
-  background: rgba(255,255,255,0.6);
+  background: rgba(255, 255, 255, 0.6);
   border-radius: 20px;
   padding: 0 6px;
   backdrop-filter: blur(5px);
   gap: 6px;
-}
-body.dark .search-bar {
-  background: rgba(50,50,50,0.6);
-}
-
-.search-bar .icon-inside {
-  background: transparent;
-  border: none;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  color: var(--text);
 }
 
 .search-bar input {
@@ -82,12 +120,14 @@ body.dark .search-bar {
   color: var(--text);
 }
 
+.search-bar .icon-inside,
+.menu-btn,
 .icon-btn {
-  background: rgba(255,255,255,0.6);
+  background: rgba(255, 255, 255, 0.6);
   border: none;
-  border-radius: 50%;
   width: 36px;
   height: 36px;
+  border-radius: 50%;
   display: grid;
   place-items: center;
   cursor: pointer;
@@ -95,51 +135,97 @@ body.dark .search-bar {
   font-size: 18px;
 }
 
-/* ===== Menu ===== */
+body.dark .icon-btn,
+body.dark .menu-btn,
+body.dark .search-bar .icon-inside {
+  background: rgba(80, 80, 80, 0.6);
+}
+
+/* =========================
+   Side menu and overlay
+========================= */
 .menu-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(5px);
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.25s;
-  z-index: 99;
+  transition: opacity 0.25s ease, visibility 0s linear 0.25s;
+  z-index: 90;
 }
+
 .menu-overlay.active {
   opacity: 1;
+  visibility: visible;
   pointer-events: auto;
+  transition: opacity 0.25s ease, visibility 0s;
 }
 
 .side-menu {
   position: fixed;
   top: 0;
-  left: -300px; /* پیش‌فرض بیرون صفحه */
+  left: 0;
   width: 300px;
+  max-width: 86vw;
   height: 100%;
   background: var(--card-bg);
   backdrop-filter: blur(10px);
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.22);
   padding: 16px;
-  box-shadow: 2px 0 12px rgba(0,0,0,0.22);
-  transition: left 0.3s ease;
-  z-index: 100;
   overflow-y: auto;
+  z-index: 100;
+
+  transform: translateX(-100%);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  transition:
+    transform 0.28s ease,
+    opacity 0.28s ease,
+    visibility 0s linear 0.28s;
+  will-change: transform, opacity;
 }
 
 .side-menu.active {
-  left: 0; /* وقتی کلاس active اضافه شد، بیاد تو صفحه */
+  transform: translateX(0);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    transform 0.28s ease,
+    opacity 0.28s ease,
+    visibility 0s;
 }
 
-/* بخش لینک تلگرام در پایین منو */
+/* Genre grid in side menu */
+.genre-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.genre-chip {
+  background: rgba(98, 0, 238, 0.09);
+  padding: 8px;
+  border-radius: 10px;
+  text-align: center;
+  cursor: pointer;
+}
+
+/* Telegram link in menu */
 .telegram-link {
   position: sticky;
-  bottom: 16px; /* فاصله از پایین منو (بالای تسک‌بار) */
+  bottom: 16px;
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 8px;
-  background: rgba(0,0,0,0.05);
+  background: rgba(0, 0, 0, 0.05);
   border-radius: 6px;
+  margin-top: 16px;
 }
 
 .telegram-link img {
@@ -153,21 +239,9 @@ body.dark .search-bar {
   font-weight: bold;
 }
 
-.genre-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.genre-chip {
-  background: rgba(98,0,238,0.09);
-  padding: 8px;
-  border-radius: 10px;
-  text-align: center;
-  cursor: pointer;
-}
-
-/* ===== Main Content ===== */
+/* =========================
+   Main content and cards
+========================= */
 .container {
   max-width: 1100px;
   margin: auto;
@@ -183,7 +257,7 @@ body.dark .search-bar {
 .movie-card {
   direction: ltr;
   border-radius: 20px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(12px);
   background: var(--card-bg);
   overflow: hidden;
@@ -200,7 +274,7 @@ body.dark .search-bar {
   background-size: cover;
   background-position: center;
   filter: blur(20px);
-  transform: scale(1.2);
+  transform: scale(1);
 }
 
 .cover-image {
@@ -229,14 +303,13 @@ body.dark .search-bar {
 
 .field-quote {
   background: #e3f2fd;
-  border-right: 4px solid #2196f3;
+  border-left: 4px solid #2196f3;
   padding: 8px 10px;
   border-radius: 6px;
   font-size: 0.9rem;
   line-height: 1.6;
   color: #0d47a1;
   margin-bottom: 4px;
-  white-space: pre-line;
 }
 
 .go-btn {
@@ -250,200 +323,428 @@ body.dark .search-bar {
   width: 100%;
 }
 
-/* ===== Admin Panel ===== */
-.hidden {
-  display: none;
+/* =========================
+   Admin: header
+========================= */
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
 }
 
+.admin-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.logout-btn {
+  background: #b3261e;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.logout-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* =========================
+   Admin: form (clean, minimal)
+========================= */
 #adminProfile {
   max-width: 800px;
-  margin: auto;
+  margin: 30px auto;
   padding: 20px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+body.dark #adminProfile {
+  background: #1e1e1e;
+  box-shadow: 0 4px 20px rgba(255,255,255,0.05);
+}
+
+#adminProfile h2 {
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 1.4rem;
+  color: #6200ee;
+}
+
+#adminProfile form {
+  display: grid;
+  gap: 15px;
 }
 
 #adminProfile input,
 #adminProfile textarea {
   width: 100%;
-  padding: 8px;
-  margin-bottom: 8px;
-  border-radius: 6px;
+  padding: 12px 14px;
+  border-radius: 10px;
   border: 1px solid #ccc;
+  font-size: 0.95rem;
+  background: #f9f9f9;
+  transition: all 0.2s ease;
 }
 
-#adminProfile button {
-  padding: 8px 12px;
-  background: var(--primary);
-  color: white;
+body.dark #adminProfile input,
+body.dark #adminProfile textarea {
+  background: #2a2a2a;
+  border-color: #444;
+  color: #f1f1f1;
+}
+
+#adminProfile input:focus,
+#adminProfile textarea:focus {
+  border-color: #6200ee;
+  box-shadow: 0 0 0 3px rgba(98,0,238,0.15);
+  outline: none;
+}
+
+#adminProfile textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+#adminProfile button[type="submit"] {
+  background: #6200ee;
+  color: #fff;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+#adminProfile button[type="submit"]:hover {
+  background: #4a00b4;
+}
+
+/* =========================
+   Admin: movie list (3 columns layout)
+========================= */
+#movieList {
+  margin-top: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.movie-item {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  direction: ltr;
+}
+
+body.dark .movie-item {
+  background: #1e1e1e;
+}
+
+.movie-cover-wrap {
+  flex-shrink: 0;
+}
+
+.movie-cover {
+  width: 60px;
+  height: 80px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.movie-title {
+  flex: 1;
+  margin: 0 12px;
+  font-weight: bold;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.movie-actions {
+  display: flex;
+  flex-direction: column; /* stack buttons vertically */
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.movie-actions button {
+  padding: 6px 10px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-}
-/* لایه تاریک پشت منو */
-.menu-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.4);
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: opacity 0.25s ease, visibility 0s linear 0.25s;
-  z-index: 90;
+  font-size: 0.85rem;
+  color: #fff;
 }
 
-.menu-overlay.active {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-  transition: opacity 0.25s ease, visibility 0s;
+.movie-actions .btn-edit {
+  background: #03a9f4; /* Edit: blue */
 }
 
-/* منوی کناری: کاملاً مخفی در حالت پیش‌فرض */
-.side-menu {
+.movie-actions .btn-delete {
+  background: #b3261e; /* Delete: red */
+}
+
+/* =========================
+   Login modal (popup)
+========================= */
+.login-modal {
+  display: none;
   position: fixed;
+  z-index: 999;
+  left: 0;
   top: 0;
-  left: 0;                 /* ثابت کنار چپ */
-  width: 300px;
-  max-width: 86vw;
+  width: 100%;
   height: 100%;
-  background: var(--card-bg);
-  backdrop-filter: blur(10px);
-  box-shadow: 2px 0 12px rgba(0,0,0,0.22);
-  padding: 16px;
-  overflow-y: auto;
-  z-index: 100;
-
-  /* پنهان‌سازی واقعی بدون “سرک کشیدن” */
-  transform: translateX(-100%);
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-
-  /* انیمیشن نرم */
-  transition:
-    transform 0.28s ease,
-    opacity 0.28s ease,
-    visibility 0s linear 0.28s; /* visibility بعد از اتمام انیمیشن تغییر کنه */
-  will-change: transform, opacity;
+  background: rgba(0, 0, 0, 0.5);
 }
 
-.side-menu.active {
-  transform: translateX(0);
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-  transition:
-    transform 0.28s ease,
-    opacity 0.28s ease,
-    visibility 0s; /* بلافاصله قابل مشاهده شود */
+.login-box {
+  background: #fff;
+  width: 320px;
+  margin: 8% auto;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  position: relative;
+  animation: fadeIn 0.3s ease;
 }
 
-/* جلوگیری از اسکرول بدنه هنگام باز بودن منو */
-body.no-scroll {
-  overflow: hidden;
+body.dark .login-box {
+  background: #1e1e1e;
+  color: #f1f1f1;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
 }
 
-/* اگر ناخواسته margin داشت، حذف شود */
-.side-menu, .side-menu * {
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.close-btn {
+  position: absolute;
+  right: 12px;
+  top: 8px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.login-box h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  padding: 8px;
+  background: #f9f9f9;
+}
+
+body.dark .input-group {
+  background: #2a2a2a;
+  border-color: #444;
+}
+
+.input-group .icon {
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+.input-group input {
+  border: none;
+  outline: none;
+  flex: 1;
+  font-size: 14px;
+  background: transparent;
+  color: inherit;
+}
+
+.login-btn {
+  width: 100%;
+  background: #6a1b9a;
+  color: #fff;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background 0.2s ease;
+}
+
+.login-btn:hover {
+  background: #4a148c;
+}
+
+.login-btn .arrow {
+  margin-left: 8px;
+}
+
+.social-login {
+  text-align: center;
+  margin-top: 15px;
+  font-size: 12px;
+  color: #555;
+}
+
+body.dark .social-login {
+  color: #bbb;
+}
+
+.social-login img {
+  margin-top: 5px;
+  cursor: pointer;
+}
+
+/* =========================
+   Misc fixes
+========================= */
+/* Prevent unexpected top margins inside side-menu */
+.side-menu,
+.side-menu * {
   margin-top: 0;
 }
-:root {
-  --md3-primary: #6750a4;
-  --md3-on-primary: #fff;
-  --md3-surface: #fff;
-  --md3-on-surface: #1c1b1f;
-  --md3-outline: #79747e;
+
+/* Lightweight custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-body {
-  font-family: 'Vazirmatn', sans-serif;
-  background: var(--md3-surface);
-  color: var(--md3-on-surface);
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+body.dark ::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* =========================
+   Responsive tweaks
+========================= */
+@media (max-width: 548px) {
+  .login-box {
+    width: 92vw;
+    margin: 18% auto;
+  }
+  .cover-container {
+    height: 600px;
+  }
+  #adminProfile {
+    padding: 16px;
+    border-radius: 12px;
+  }
+  #adminProfile input,
+  #adminProfile textarea {
+    font-size: 0.9rem;
+    padding: 10px 12px;
+  }
+  #adminProfile button[type="submit"] {
+    font-size: 0.95rem;
+    padding: 10px;
+  }
+  #movieList .movie-item {
+    padding: 10px;
+  }
+ .movie-title {
+  margin: 0 8px;
+  font-size: 0.95rem;
+}
+
+.movie-actions button {
+  width: 100%;
+}
+} /* پایان مدیا کوئری موبایل */
+/* IMDb badge */
+.imdb-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5c518;          /* رنگ زرد IMDb */
+  color: #000;                   /* متن مشکی */
+  border-radius: 4px;
+  padding: 2px 6px;
+  line-height: 1;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  font-family: "Arial Black", Impact, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  box-shadow: inset 0 -1px 0 rgba(0,0,0,0.15);
+  text-transform: uppercase;
+  user-select: none;
+}
+
+.imdb-badge::selection {
+  background: transparent;
+}
+
+/* اگر badge لینک باشد */
+.imdb-link {
+  text-decoration: none;
+  outline: none;
+}
+.imdb-link:hover {
+  filter: brightness(0.95);
+}
+.imdb-link:active {
+  transform: translateY(1px);
+}
+body.dark .imdb-badge {
+  box-shadow: inset 0 -1px 0 rgba(0,0,0,0.25);
+}
+.synopsis-quote {
+  position: relative;
+  border-left: 4px solid #2196f3;
+  background: #e3f2fd;
+  color: #0d47a1;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.synopsis-quote .quote-text {
   margin: 0;
   padding: 0;
 }
 
-.admin-container {
-  max-width: 900px;
-  margin: auto;
-  padding: 16px;
-}
-
-.md3-card {
-  background: var(--md3-surface);
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-}
-
-.md3-title {
-  font-size: 1.5rem;
-  margin-bottom: 16px;
-}
-
-.md3-field {
-  position: relative;
-  margin-bottom: 16px;
-}
-
-.md3-field input,
-.md3-field textarea {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid var(--md3-outline);
-  border-radius: 8px;
-  outline: none;
-  font-size: 1rem;
-}
-
-.md3-field label {
+.quote-toggle-btn {
   position: absolute;
-  top: -8px;
-  left: 12px;
-  background: var(--md3-surface);
-  padding: 0 4px;
-  font-size: 0.8rem;
-  color: var(--md3-outline);
-}
-
-.md3-btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 24px;
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-.md3-btn.primary {
-  background: var(--md3-primary);
-  color: var(--md3-on-primary);
-}
-
-.md3-list {
-  margin-top: 16px;
-}
-
-.md3-list-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px;
-  border-bottom: 1px solid var(--md3-outline);
-}
-
-.md3-list-item button {
-  margin-left: 8px;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.md3-list-item .edit-btn {
-  background: #03dac6;
-  color: #000;
-}
-
-.md3-list-item .delete-btn {
-  background: #b3261e;
+  bottom: 6px;
+  right: 8px;
+  background: #2196f385;
   color: #fff;
+  border: none;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.quote-toggle-btn:hover {
+  background: #1976d2;
 }
