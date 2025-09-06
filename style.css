@@ -81,7 +81,7 @@ body.dark textarea {
 
 body.dark .field-quote {
   background: #263238;
-  border-right: 4px solid #90caf9;
+  border-left: 4px solid #90caf9;
   color: #e3f2fd;
 }
 
@@ -274,7 +274,7 @@ body.dark .search-bar .icon-inside {
   background-size: cover;
   background-position: center;
   filter: blur(20px);
-  transform: scale(1.2);
+  transform: scale(1);
 }
 
 .cover-image {
@@ -303,7 +303,7 @@ body.dark .search-bar .icon-inside {
 
 .field-quote {
   background: #e3f2fd;
-  border-right: 4px solid #2196f3;
+  border-left: 4px solid #2196f3;
   padding: 8px 10px;
   border-radius: 6px;
   font-size: 0.9rem;
