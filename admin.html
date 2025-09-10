@@ -1,41 +1,70 @@
 <!DOCTYPE html>
 <html lang="fa" dir="ltr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Admin Panel</title>
+
+  <!-- IRANSans -->
+  <link href="https://cdn.fontcdn.ir/Font/Persian/IRANSans/IRANSans.css" rel="stylesheet" type="text/css" />
+
+  <!-- icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+  <!-- styles -->
   <link rel="stylesheet" href="style.css">
+
+  <!-- supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
 <header class="admin-header">
-  <h1>Admin Panel</h1>
+  <h1><i class="bi bi-speedometer2"></i> Admin Panel</h1>
   <div class="admin-actions">
-    <a href="index.html" class="back-link">Return to website</a>
-    <button id="logoutBtn" class="logout-btn" type="button">Exit</button>
+    <a href="index.html" class="back-link"><i class="bi bi-arrow-left-circle"></i> بازگشت</a>
+    <button id="logoutBtn" class="logout-btn" type="button"><i class="bi bi-box-arrow-right"></i> خروج</button>
   </div>
 </header>
 
 <main>
-  <section id="adminProfile">
-    <h2>Post management</h2>
-    <form id="addMovieForm">
-      <input type="text" id="title" placeholder="Title" />
-      <input type="file" id="coverFile" accept="image/*" />
-      <input type="text" id="link" placeholder="File Link" />
+  <section id="adminProfile" class="admin-section">
+    <h2>Post Management</h2>
+
+    <!-- add / edit movie form -->
+    <form id="addMovieForm" class="admin-form" enctype="multipart/form-data">
+      <input id="title" type="text" placeholder="Title" />
+      <input id="coverFile" type="file" accept="image/*" />
+      <input id="link" type="text" placeholder="File Link" />
       <textarea id="synopsis" placeholder="Synopsis"></textarea>
-      <input type="text" id="director" placeholder="Director" />
-      <input type="text" id="product" placeholder="Product" />
-      <input type="text" id="stars" placeholder="Stars" />
-      <input type="text" id="imdb" placeholder="IMDB" />
-      <input type="text" id="release_info" placeholder="Release Info" />
-      <input type="text" id="genre" placeholder="Genre" />
-      <button type="submit">ثبت و ارسال</button>
+      <input id="director" type="text" placeholder="Director" />
+      <input id="product" type="text" placeholder="Product" />
+      <input id="stars" type="text" placeholder="Stars" />
+      <input id="imdb" type="text" placeholder="IMDB" />
+      <input id="release_info" type="text" placeholder="Release Info" />
+      <input id="genre" type="text" placeholder="Genre (space-separated)" />
+      <button type="submit" class="admin-submit">ثبت و ارسال <i class="bi bi-cloud-upload"></i></button>
     </form>
-    <div id="movieList"></div>
+
+    <!-- admin messages section -->
+    <h2>Admin Messages</h2>
+    <form id="addMessageForm" class="admin-form">
+      <textarea id="messageText" placeholder="Write a message..."></textarea>
+      <button type="submit" class="admin-submit">Submit message <i class="bi bi-chat-dots"></i></button>
+    </form>
+
+    <div id="messageList" class="message-list" aria-live="polite"></div>
+
+    <!-- admin search (after messages, before movie list) -->
+    <div class="admin-search-wrapper">
+      <input id="adminSearch" class="admin-search-input" type="text" placeholder="Search movies..." />
+    </div>
+
+    <!-- movie list -->
+    <div id="movieList" class="movie-list"></div>
   </section>
 </main>
 
 <script src="script.js"></script>
 </body>
+</html>
