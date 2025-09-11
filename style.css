@@ -185,30 +185,227 @@ body.dark .page-bubble.active{background:var(--btn-night)}
 }
 
 /* Ensure login modal is hidden by default (defensive) */
-.login-modal{display:none}
+/* پس‌زمینه مدال با بلر */
 #loginModal {
-  display: none;
+  display: none; /* پیش‌فرض مخفی */
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.5);
-  z-index: 2000;
+  z-index: 1000;
+  inset: 0;
+  backdrop-filter: blur(6px);
+  background-color: rgba(0, 0, 0, 0.3);
 }
 
-#loginModal .modal-content {
-  position: absolute;
+/* جعبه لاگین وسط صفحه */
+#loginModal .login-box {
+  background: #fff;
+  margin: auto;
+  padding: 25px 30px;
+  border-radius: 12px;
+  width: 320px;
+  position: relative;
   top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  width: 300px;
+  transform: translateY(-50%);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+  animation: fadeIn 0.3s ease;
 }
 
-body.dark #loginModal .modal-content {
-  background-color: #3A4750;
+/* حالت دارک مود */
+body.dark #loginModal .login-box {
+  background-color: #2f3640;
   color: #f1f1f1;
+}
+
+/* دکمه بستن */
+#loginModal .close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 22px;
+  cursor: pointer;
+  color: #888;
+  transition: color 0.2s;
+}
+#loginModal .close-btn:hover {
+  color: #000;
+}
+body.dark #loginModal .close-btn:hover {
+  color: #fff;
+}
+
+/* فرم داخل مدال */
+#loginModal form {
+  display: flex;
+  flex-direction: column;
+}
+
+#loginModal label {
+  margin-top: 10px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+#loginModal input {
+  padding: 10px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+#loginModal input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 4px rgba(0,123,255,0.4);
+  outline: none;
+}
+
+/* دکمه ورود */
+#loginModal .login-btn {
+  margin-top: 15px;
+  padding: 10px;
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+#loginModal .login-btn:hover {
+  background: linear-gradient(135deg, #0056b3, #003f7f);
+}
+
+/* انیمیشن ظاهر شدن */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-60%); }
+  to { opacity: 1; transform: translateY(-50%); }
+}
+/* فونت کلی پنل ادمین */
+body {
+  font-family: 'IRANSans', sans-serif;
+}
+
+/* هدر ادمین */
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background: #f8f8f8;
+  border-bottom: 1px solid #ddd;
+}
+
+/* دکمه بازگشت */
+.back-link {
+  background-color: #2185D5;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: background 0.2s;
+}
+.back-link:hover {
+  background-color: #1769a8;
+}
+
+/* دکمه خروج */
+#logoutBtn.logout-btn {
+  background-color: #E62727;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: background 0.2s;
+}
+#logoutBtn.logout-btn:hover {
+  background-color: #c71f1f;
+}
+
+/* فرم‌های ادمین */
+.admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.admin-form input,
+.admin-form textarea {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.admin-form input:focus,
+.admin-form textarea:focus {
+  border-color: #2185D5;
+  box-shadow: 0 0 4px rgba(33,133,213,0.4);
+  outline: none;
+}
+
+/* دکمه ثبت و ارسال */
+.admin-submit {
+  background-color: #2185D5;
+  color: #fff;
+  border: none;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  width: 100%; /* هم عرض اینپوت‌ها */
+  transition: background 0.2s;
+}
+.admin-submit:hover {
+  background-color: #1769a8;
+}
+
+/* لیست پیام‌ها */
+.message-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* دکمه‌های اکشن (ادیت و حذف) کنار هم */
+.action-buttons {
+  display: flex;
+  flex-direction: c;
+  gap: 6px;
+}
+.action-buttons .btn-edit {
+  background-color: #2185D5;
+  color: #fff;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.action-buttons .btn-edit:hover {
+  background-color: #1769a8;
+}
+.action-buttons .btn-delete {
+  background-color: #E62727;
+  color: #fff;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.action-buttons .btn-delete:hover {
+  background-color: #c71f1f;
+}
+.admin-actions{
+  display: flex;
+  justify-content: space-between;
+  gap: 1;
 }
