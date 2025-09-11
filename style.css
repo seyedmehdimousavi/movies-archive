@@ -38,21 +38,35 @@ body.dark{
   Header (sticky + blur)
   ========================= */
 .main-header{
-  display:flex;align-items:center;gap:10px;padding:12px 14px;
+  display:flex;
+  justify-content: space-between;
+  align-items:center;padding:12px 14px;
   backdrop-filter:blur(var(--blur)); background:rgba(255,255,255,0.55);
   position:sticky;top:0;z-index:120;box-shadow:0 2px 8px rgba(0,0,0,0.06);
 }
 body.dark .main-header{background:rgba(30,36,40,0.6)}
 
 .search-bar{
-  display:flex;align-items:center;gap:8px;padding:6px;border-radius:28px;
-  background:rgba(255,255,255,0.6);flex:1;min-height:54px;backdrop-filter:blur(6px)
+  display:flex;
+  flex: 1;
+  justify-content: space-between;
+  align-items:center;
+  padding:6px;
+  border-radius:28px;
+  background:rgba(255,255,255,0.6);
+  min-height:54px;
+  backdrop-filter:blur(6px)
 }
 .search-bar input{
-  flex:1;border:0;background:transparent;padding:10px;font-size:1rem;outline:none;color:inherit;height:40px
+  border:0;background:transparent;padding:10px;font-size:1rem;outline:none;color:inherit;height:40px;
 }
 .menu-btn,.icon-btn,.icon-inside{
-  width:44px;height:44px;border-radius:50%;display:grid;place-items:center;border:0;background:rgba(255,255,255,0.6);cursor:pointer;font-size:18px
+  height:44px;
+  border-radius:50%;
+  border:0;
+  background:rgba(255,255,255,0.6);
+  cursor:pointer;
+  font-size:18px
 }
 body.dark .menu-btn,body.dark .icon-btn,body.dark .icon-inside{background:rgba(80,80,80,0.6)}
 
@@ -176,9 +190,12 @@ body.dark .page-bubble.active{background:var(--btn-night)}
   ========================= */
 @media (max-width:600px){
   .main-header{padding:8px 10px}
-  .search-bar{min-height:44px;padding:6px;gap:6px}
-  .search-bar input{padding:8px;height:36px;font-size:.95rem}
-  .menu-btn,.icon-btn,.icon-inside{width:38px;height:38px}
+  .search-bar{min-height:44px;padding:6px;
+    width: 50%;
+  }
+  .search-bar input{padding:8px;
+ height:36px;font-size:.95rem}
+  .menu-btn,.icon-btn,.icon-inside{height:38px;width: 38px;}
   .comment-input-row{flex-direction:column;align-items:stretch}
   .comment-input-row .comment-name{width:100%}
   .comment-input-row .comment-send{width:100%}
@@ -407,5 +424,5 @@ body {
 .admin-actions{
   display: flex;
   justify-content: space-between;
-  gap: 1;
+  gap: .5 rem;
 }
