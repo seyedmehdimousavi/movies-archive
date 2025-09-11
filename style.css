@@ -40,28 +40,38 @@ body.dark{
 .main-header{
   display:flex;
   justify-content: space-between;
-  align-items:center;padding:12px 14px;
+  align-items:center;
+  padding:12px 14px;
+  gap: .4rem;
   backdrop-filter:blur(var(--blur)); background:rgba(255,255,255,0.55);
   position:sticky;top:0;z-index:120;box-shadow:0 2px 8px rgba(0,0,0,0.06);
 }
 body.dark .main-header{background:rgba(30,36,40,0.6)}
 
 .search-bar{
-  display:flex;
-  flex: 1;
-  justify-content: space-between;
-  align-items:center;
-  padding:6px;
-  border-radius:28px;
-  background:rgba(255,255,255,0.6);
-  min-height:54px;
-  backdrop-filter:blur(6px)
+  display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px;
+    flex: 1;
+    width: 50%;
+    border-radius: 28px;
+    background: rgba(255, 255, 255, 0.6);
+    min-height: 54px;
+    backdrop-filter: blur(6px);
+}
+.themetogglle{
+      width: 44px;
+    height: 44px;
 }
 .search-bar input{
-  border:0;background:transparent;padding:10px;font-size:1rem;outline:none;color:inherit;height:40px;
+  border:0;
+  width: inherit;
+  background:transparent;padding:10px;font-size:1rem;outline:none;color:inherit;height:40px;
 }
 .menu-btn,.icon-btn,.icon-inside{
   height:44px;
+  width: 44px;
   border-radius:50%;
   border:0;
   background:rgba(255,255,255,0.6);
@@ -87,7 +97,22 @@ body.dark .genre-chip{background:rgba(255,255,255,0.08)}
   Container, grid, cards
   ========================= */
 .container{max-width:1100px;margin:18px auto;padding:16px}
-.movie-count{margin-bottom:8px}
+.movie-count{
+  margin-bottom:8px;
+    display: inline-block;
+    font-weight: bold;
+    margin-bottom: 8px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background:rgba(227, 242, 253, 0.75);
+    color: #0d47a1;
+    line-height: 1.5;
+  }
+  body.dark .movie-count{
+        background: rgba(58, 71, 80, 0.85);
+    color: #e6eef6;
+  }
+
 .movies-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
 
 /* movie card */
@@ -116,7 +141,24 @@ body.dark .go-btn{background:var(--btn-night)}
 /* =========================
   Comment summary & panel
   ========================= */
-.comment-summary{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;padding:8px;border-radius:10px;background:transparent;cursor:pointer}
+.comment-summary{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  margin-top:10px;
+  padding:8px;
+  border-radius:10px;
+      background: rgba(227, 242, 253, 0.9);
+  /* background:transparent; */
+  cursor:pointer}
+  body.dark .comment-summary{
+    background: rgb(39 92 131 / 33%);
+    color: #e6eef6;
+  }
+   body.dark .comments-count{
+ color: #e6eef6;
+   }
 .avatars{display:flex;gap:6px;align-items:center}
 .avatar{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;background:linear-gradient(135deg,#004A7C,#2185D5);box-shadow:0 2px 6px rgba(0,0,0,0.12);font-size:.85rem}
 body.dark .avatar{background:linear-gradient(135deg,#2185D5,#004A7C)}
@@ -139,7 +181,16 @@ body.dark .comments-panel-header{background:rgba(30,36,40,0.6);border-bottom:1px
 body.dark .comment-text-content{background:rgba(58,71,80,0.9);color:#e6eef6}
 
 /* comment input row */
-.comment-input-row{display:flex;gap:8px;align-items:flex-end;padding:10px;border-top:1px solid rgba(0,0,0,0.04);background:rgba(255,255,255,0.45)}
+.comment-input-row{
+  display:flex;
+  flex-direction: column;
+  gap:8px;
+  align-items:flex-end;
+align-items: stretch;
+  padding:10px;
+  border-top:1px solid rgba(0,0,0,0.04);
+  background:rgba(255,255,255,0.45)
+}
 body.dark .comment-input-row{background:rgba(30,36,40,0.45)}
 .comment-input-row .comment-name{width:140px;padding:8px;border-radius:8px;border:1px solid #ccc}
 .comment-input-row .comment-text{flex:1;padding:8px;border-radius:8px;border:1px solid #ccc;resize:vertical}
@@ -150,27 +201,55 @@ body.dark .comment-input-row .comment-send{background:#E8F1F5;color:#222}
   Messages (admin bubbles)
   ========================= */
 .messages-container{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
-.message-bubble{position:relative;padding:12px 16px;border-radius:10px;background:rgba(227,242,253,0.75);border-left:4px solid rgba(33,133,213,0.9);color:#0d47a1;line-height:1.5}
-body.dark .message-bubble{background:rgba(58,71,80,0.85);color:#e6eef6;border-left:4px solid rgba(33,133,213,0.7)}
-.message-bubble .msg-close{position:absolute;top:6px;left:8px;background:transparent;border:0;font-size:18px;cursor:pointer;color:inherit}
+.message-bubble{
+  position:relative;
+  padding:12px 16px;
+  border-radius:10px;
+  background:rgba(227,242,253,0.75);
+  color:#0d47a1;
+  line-height:1.5
+}
+body.dark .message-bubble{
+  background:rgba(58,71,80,0.85);
+  color:#e6eef6;
+}
+.message-bubble .msg-close{position:absolute;top:6px;right:8px;background:transparent;border:0;font-size:30px;cursor:pointer;color:inherit}
 
 /* =========================
   Admin page elements (forms, lists)
   ========================= */
 .admin-header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;backdrop-filter:blur(var(--blur));background:rgba(255,255,255,0.6);position:sticky;top:0;z-index:140}
 body.dark .admin-header{background:rgba(30,36,40,0.6)}
-#adminProfile{max-width:800px;margin:30px auto;padding:20px;background:var(--post-day);border-radius:16px}
+#adminProfile{
+  max-width:800px;
+  margin:30px auto;
+  padding:20px;
+  border-radius:16px
+}
 body.dark #adminProfile{background:var(--post-night);color:#e6eef6}
 #adminProfile input,#adminProfile textarea{width:100%;padding:12px;border-radius:10px;border:1px solid #ccc;background:#f9f9f9}
 body.dark #adminProfile input,body.dark #adminProfile textarea{background:#2a2a2a;border-color:#444;color:#fff}
 .admin-submit{background:var(--btn-day);color:#fff;padding:12px;border-radius:10px;border:0;cursor:pointer}
 body.dark .admin-submit{background:var(--btn-night)}
 .movie-list,.message-list{margin-top:12px;display:flex;flex-direction:column;gap:10px}
-.movie-item,.message-item{display:flex;align-items:center;padding:10px;border-radius:12px;background:var(--post-day)}
+.movie-item,.message-item{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  padding:10px;
+  border-radius:12px;
+  background:var(--post-day)
+}
 body.dark .movie-item,body.dark .message-item{background:var(--post-night)}
 .movie-cover{width:60px;height:80px;border-radius:6px;object-fit:cover}
 .movie-title{flex:1;margin:0 12px;font-weight:700}
-.movie-actions,.message-actions{display:flex;gap:8px}
+.admin-search-wraper{
+  margin: 3rem 0 1rem 0;
+}
+.movie-actions,.message-actions{
+  display:flex;
+  flex-direction: column;
+  gap:8px}
 .movie-actions .btn-edit,.message-actions .btn-edit{background:var(--green);border:0;color:#fff;padding:6px 10px;border-radius:6px;cursor:pointer}
 .movie-actions .btn-edit:hover,.message-actions .btn-edit:hover{background:var(--green-hover)}
 .movie-actions .btn-delete,.message-actions .btn-delete{background:var(--red);border:0;color:#fff;padding:6px 10px;border-radius:6px;cursor:pointer}
@@ -191,16 +270,29 @@ body.dark .page-bubble.active{background:var(--btn-night)}
 @media (max-width:600px){
   .main-header{padding:8px 10px}
   .search-bar{min-height:44px;padding:6px;
-    width: 50%;
   }
   .search-bar input{padding:8px;
  height:36px;font-size:.95rem}
   .menu-btn,.icon-btn,.icon-inside{height:38px;width: 38px;}
-  .comment-input-row{flex-direction:column;align-items:stretch}
-  .comment-input-row .comment-name{width:100%}
-  .comment-input-row .comment-send{width:100%}
 }
-
+.comment-input-row{
+  flex-direction:column;
+  align-items:stretch
+}
+.name-comments-close{
+  display: flex;
+justify-content: space-between;
+align-items: center;
+}
+.comments-close{
+  font-size: 27px;
+  width: 33px;
+  height: 33px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+  .comment-input-row .comment-name{width:80%}
+  .comment-input-row .comment-send{width:100%}
 /* Ensure login modal is hidden by default (defensive) */
 /* پس‌زمینه مدال با بلر */
 #loginModal {

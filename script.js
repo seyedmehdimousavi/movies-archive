@@ -443,7 +443,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const pageItems = filtered.slice(start, start + PAGE_SIZE);
 
     moviesGrid.innerHTML = '';
-    movieCount.innerText = `🎞️ تعداد فیلم‌ها: ${filtered.length}`;
+    movieCount.innerText = `🎞️ Number of movies: ${filtered.length}`;
 
     for (const m of pageItems) {
       const cover = escapeHtml(m.cover || 'https://via.placeholder.com/300x200?text=No+Image');
@@ -504,11 +504,15 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="comments-panel-inner">
               <div class="comments-panel-header">
                 <div class="comments-title">Comments</div>
-                <button class="comments-close" aria-label="close comments">&times;</button>
+                
               </div>
               <div class="comments-list" role="log" aria-live="polite"></div>
               <div class="comment-input-row">
-                <input class="comment-name" placeholder="Your name" maxlength="60" />
+              <div class="name-comments-close">
+              <input class="comment-name" placeholder="Your name" maxlength="60" />
+              <button class="comments-close" aria-label="close comments">&times;</button>
+              </div>
+                
                 <textarea class="comment-text" placeholder="Write a comment..." rows="2"></textarea>
                 <button class="comment-send">Send</button>
               </div>
