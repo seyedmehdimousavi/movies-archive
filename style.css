@@ -67,7 +67,13 @@ body.dark .main-header{background:rgba(30,36,40,0.6)}
 .search-bar input{
   border:0;
   width: inherit;
-  background:transparent;padding:10px;font-size:1rem;outline:none;color:inherit;height:40px;
+  flex: 1;
+  background:transparent;
+  padding:10px;
+  font-size:1rem;
+  outline:none;
+  color:inherit;
+  height:40px;
 }
 .menu-btn,.icon-btn,.icon-inside{
   height:44px;
