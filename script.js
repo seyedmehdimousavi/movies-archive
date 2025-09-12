@@ -848,6 +848,88 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAdminMessages();
   }
 
+  // -------------------- Admin: Unapproved Comments (panel) --------------------
+  async function loadUnapprovedComments() {
+    const container = document.getElementById('unapprovedComments');
+    if (!container) return; // فقط در admin.html که این بخش وجود داره
+
+    const ok = await enforceAdminGuard();
+    if (!ok) return;
+
+    container.innerHTML = '<div class="loading">در حال لود کامنت‌ها...</div>';
+
+    const { data, error } = await supabase
+      .from('comments')
+      .select('*')
+      .eq('approved', false)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('خطا در لود کامنت‌ها:', error);
+      container.innerHTML = '<p>خطا در لود کامنت‌ها</p>';
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      container.innerHTML = '<p>هیچ کامنت منتشر نشده‌ای وجود ندارد.</p>';
+      return;
+    }
+
+    container.innerHTML = data.map(c => `
+      <div class="comment-item admin">
+        <div class="comment-meta">
+          <span class="comment-author">${escapeHtml(c.name)}</span>
+          <span class="comment-time">${c.created_at ? new Date(c.created_at).toLocaleString() : ''}</span>
+        </div>
+        <div class="comment-text">${escapeHtml(c.text)}</div>
+        <div class="comment-actions">
+          <button class="btn-approve" data-id="${c.id}"><i class="bi bi-check2-circle"></i> تأیید</button>
+          <button class="btn-delete" data-id="${c.id}"><i class="bi bi-trash"></i> حذف</button>
+        </div>
+      </div>
+    `).join('');
+
+    container.addEventListener('click', async (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      const id = btn.dataset.id;
+      if (!id) return;
+
+      if (btn.classList.contains('btn-approve')) {
+        btn.disabled = true;
+        const { error: upErr } = await supabase
+          .from('comments')
+          .update({ approved: true, published: true })
+          .eq('id', id);
+        btn.disabled = false;
+        if (upErr) {
+          console.error(upErr);
+          alert('خطا در تأیید کامنت');
+        } else {
+          await loadUnapprovedComments();
+          alert('کامنت تأیید شد');
+        }
+      }
+
+      if (btn.classList.contains('btn-delete')) {
+        if (!confirm('این کامنت حذف شود؟')) return;
+        btn.disabled = true;
+        const { error: delErr } = await supabase
+          .from('comments')
+          .delete()
+          .eq('id', id);
+        btn.disabled = false;
+        if (delErr) {
+          console.error(delErr);
+          alert('خطا در حذف کامنت');
+        } else {
+          await loadUnapprovedComments();
+          alert('کامنت حذف شد');
+        }
+      }
+    }, { once: true });
+  }
+
   // -------------------- Admin quick search --------------------
   if (adminSearch) {
     adminSearch.addEventListener('input', () => {
@@ -891,4 +973,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // -------------------- Initial load --------------------
   fetchMovies();
   fetchMessages();
+  // Load unapproved comments only if admin section exists
+  if (document.getElementById('unapprovedComments')) {
+    loadUnapprovedComments();
+  }
 }); // end DOMContentLoaded
