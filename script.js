@@ -1,5 +1,3 @@
-// script.js — Complete file (all logic) — Comments use Supabase only
-
 // -------------------- Supabase config --------------------
 const SUPABASE_URL = 'https://gwsmvcgjdodmkoqupdal.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3c212Y2dqZG9kbWtvcXVwZGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1NDczNjEsImV4cCI6MjA3MjEyMzM2MX0.OVXO9CdHtrCiLhpfbuaZ8GVDIrUlA8RdyQwz2Bk2cDY';
@@ -12,6 +10,7 @@ const ADMIN_UID = '7314d471-8343-44b3-9fcc-a9ae01d99725';
 let currentUser = null;
 let movies = [];
 let messages = [];
+let editingMovie = null; // برگشت به منطق فایل اول
 const PAGE_SIZE = 10;
 let currentPage = 1;
 
@@ -43,17 +42,16 @@ function timeAgo(iso) {
   return `${Math.floor(diff / 86400)}d`;
 }
 
-// -------------------- Comments (server-only) --------------------
-// load comments for a movie (most recent first)
+// -------------------- Comments --------------------
 async function loadComments(movieId) {
   try {
     const { data, error } = await supabase
       .from('comments')
       .select('*')
       .eq('movie_id', movieId)
-      .order('id', { ascending: false })
+      .eq('approved', true) // فقط تاییدشده‌ها را نمایش بده
+      .order('created_at', { ascending: true })
       .limit(500);
-
     if (error) {
       console.error('Supabase select error (loadComments):', error);
       return [];
@@ -65,7 +63,6 @@ async function loadComments(movieId) {
   }
 }
 
-// attach comment UI logic to a movie card element
 function attachCommentsHandlers(card, movieId) {
   const avatarsEl = card.querySelector('.avatars');
   const countEl = card.querySelector('.comments-count');
@@ -78,34 +75,37 @@ function attachCommentsHandlers(card, movieId) {
   const textInput = card.querySelector('.comment-text');
   const sendBtn = card.querySelector('.comment-send');
 
-  // render array of comments into the commentsList and update avatars/count
   function renderComments(arr) {
-    const latest = (arr || []).slice(0, 3).map(c => c.name || 'Guest');
+    const latest = (arr || []).slice(-3).map(c => c.name || 'Guest');
     if (avatarsEl) {
-      avatarsEl.innerHTML = latest.map(n => `<div class="avatar">${escapeHtml(initials(n))}</div>`).join('');
+      avatarsEl.innerHTML = latest
+        .map(n => `<div class="avatar">${escapeHtml(initials(n))}</div>`)
+        .join('');
     }
     if (countEl) {
       countEl.textContent = `${(arr || []).length} comments`;
     }
     if (commentsList) {
       commentsList.innerHTML = (arr || [])
-        .slice()
-        .reverse()
         .map(c => `
           <div class="comment-row">
             <div class="comment-avatar">${escapeHtml(initials(c.name))}</div>
             <div class="comment-body">
-              <div class="comment-meta"><strong>${escapeHtml(c.name)}</strong> · <span class="comment-time">${timeAgo(c.created_at)}</span></div>
+              <div class="comment-meta">
+                <strong>${escapeHtml(c.name)}</strong> ·
+                <span class="comment-time">${timeAgo(c.created_at)}</span>
+              </div>
               <div class="comment-text-content">${escapeHtml(c.text)}</div>
             </div>
           </div>
-        `).join('');
-      // scroll to bottom so newest are visible at end of panel
-      setTimeout(() => { commentsList.scrollTop = commentsList.scrollHeight; }, 60);
+        `)
+        .join('');
+      setTimeout(() => {
+        commentsList.scrollTop = commentsList.scrollHeight;
+      }, 60);
     }
   }
 
-  // refresh comments from server and render
   async function refresh() {
     try {
       const arr = await loadComments(movieId);
@@ -116,7 +116,6 @@ function attachCommentsHandlers(card, movieId) {
     }
   }
 
-  // open/close panel
   function openComments() {
     refresh();
     if (panel) {
@@ -124,6 +123,7 @@ function attachCommentsHandlers(card, movieId) {
       panel.setAttribute('aria-hidden', 'false');
     }
   }
+
   function closeComments() {
     if (panel) {
       panel.classList.remove('open');
@@ -131,12 +131,10 @@ function attachCommentsHandlers(card, movieId) {
     }
   }
 
-  // event bindings
   enterBtn?.addEventListener('click', openComments);
   summaryRow?.addEventListener('click', openComments);
   closeBtn?.addEventListener('click', closeComments);
 
-  // send comment (serverside)
   sendBtn?.addEventListener('click', async () => {
     const name = (nameInput?.value || 'Guest').trim() || 'Guest';
     const text = (textInput?.value || '').trim();
@@ -150,17 +148,21 @@ function attachCommentsHandlers(card, movieId) {
     try {
       const { error } = await supabase
         .from('comments')
-        .insert([{ movie_id: movieId, name, text }]);
-
+        .insert([{
+          movie_id: movieId,
+          name,
+          text,
+          approved: false,  // در انتظار تایید
+          published: false  // هنوز منتشر نشده
+        }]);
       if (error) {
         console.error('Error inserting comment:', error);
-        // show detailed message to help debugging
         alert('Error saving comment: ' + (error.message || JSON.stringify(error)));
       } else {
-        // clear inputs and reload comments
         if (nameInput) nameInput.value = '';
         if (textInput) textInput.value = '';
         await refresh();
+        alert('کامنت ثبت شد و بعد از تایید ادمین نمایش داده می‌شود.');
       }
     } catch (err) {
       console.error('Insert comment exception:', err);
@@ -171,17 +173,18 @@ function attachCommentsHandlers(card, movieId) {
     }
   });
 
-  // initial render for summary (show count & avatars)
+  // initial summary render
   refresh();
 }
 
 // -------------------- DOM Ready: main app --------------------
 document.addEventListener('DOMContentLoaded', () => {
-  // Element references (may be null if not on that page)
+  // Element references
   const themeToggle = document.getElementById('themeToggle');
   const menuBtn = document.getElementById('menuBtn');
   const sideMenu = document.getElementById('sideMenu');
   const menuOverlay = document.getElementById('menuOverlay');
+
   const profileBtn = document.getElementById('profileBtn');
   const loginModal = document.getElementById('loginModal');
   const closeLoginModal = document.getElementById('closeLoginModal');
@@ -194,14 +197,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const moviesGrid = document.getElementById('moviesGrid');
   const movieCount = document.getElementById('movieCount');
   const genreGrid = document.getElementById('genreGrid');
+
   const adminMessagesContainer = document.getElementById('adminMessages');
+
   const paginationContainer = document.getElementById('pagination');
 
   const addMovieForm = document.getElementById('addMovieForm');
   const movieList = document.getElementById('movieList');
+
   const logoutBtn = document.getElementById('logoutBtn');
+
   const addMessageForm = document.getElementById('addMessageForm');
   const messageList = document.getElementById('messageList');
+
   const adminSearch = document.getElementById('adminSearch');
 
   // Defensive: hide login modal initially
@@ -211,28 +219,38 @@ document.addEventListener('DOMContentLoaded', () => {
   function applyTheme(dark) {
     if (dark) {
       document.body.classList.add('dark');
-      if (themeToggle && themeToggle.querySelector('i')) themeToggle.querySelector('i').className = 'bi bi-sun';
+      if (themeToggle && themeToggle.querySelector('i'))
+        themeToggle.querySelector('i').className = 'bi bi-sun';
       localStorage.setItem('theme', 'dark');
     } else {
       document.body.classList.remove('dark');
-      if (themeToggle && themeToggle.querySelector('i')) themeToggle.querySelector('i').className = 'bi bi-moon';
+      if (themeToggle && themeToggle.querySelector('i'))
+        themeToggle.querySelector('i').className = 'bi bi-moon';
       localStorage.setItem('theme', 'light');
     }
   }
   if (themeToggle) themeToggle.addEventListener('click', () => applyTheme(!document.body.classList.contains('dark')));
   if (localStorage.getItem('theme') === 'dark') applyTheme(true);
 
-  // -------------------- Side menu --------------------
+  // -------------------- Side menu open/close + outside click + blur --------------------
   if (menuBtn && sideMenu && menuOverlay) {
-    menuBtn.addEventListener('click', () => {
+    const openMenu = () => {
       sideMenu.classList.add('active');
       menuOverlay.classList.add('active');
-      document.body.classList.add('no-scroll');
-    });
-    menuOverlay.addEventListener('click', () => {
+      document.body.classList.add('no-scroll', 'menu-open');
+    };
+    const closeMenu = () => {
       sideMenu.classList.remove('active');
       menuOverlay.classList.remove('active');
-      document.body.classList.remove('no-scroll');
+      document.body.classList.remove('no-scroll', 'menu-open');
+    };
+    menuBtn.addEventListener('click', openMenu);
+    menuOverlay.addEventListener('click', closeMenu);
+    document.addEventListener('click', (e) => {
+      if (!sideMenu.classList.contains('active')) return;
+      const clickedInsideMenu = sideMenu.contains(e.target);
+      const clickedMenuBtn = menuBtn.contains(e.target);
+      if (!clickedInsideMenu && !clickedMenuBtn) closeMenu();
     });
   }
 
@@ -280,6 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       const submitBtn = loginForm.querySelector('button[type="submit"]');
       submitBtn.disabled = true;
+      const origText = submitBtn.textContent;
       submitBtn.textContent = 'Signing in...';
       try {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -295,7 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
         alert('Login failed');
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Log in';
+        submitBtn.textContent = origText || 'Log in';
       }
     });
   }
@@ -316,9 +335,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // -------------------- Fetch data --------------------
   async function fetchMovies() {
     try {
-      const { data, error } = await supabase.from('movies').select('*').order('id', { ascending: false });
-      if (error) { console.error('fetch movies error', error); movies = []; return; }
-      movies = data || [];
+      const { data, error } = await supabase
+        .from('movies')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) {
+        console.error('fetch movies error', error);
+        movies = [];
+      } else {
+        movies = data || [];
+      }
       currentPage = 1;
       renderPagedMovies();
       buildGenreGrid();
@@ -331,9 +357,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function fetchMessages() {
     try {
-      const { data, error } = await supabase.from('messages').select('*').order('id', { ascending: false });
-      if (error) { console.error('fetch messages error', error); messages = []; }
-      else messages = data || [];
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .order('id', { ascending: false });
+      if (error) {
+        console.error('fetch messages error', error);
+        messages = [];
+      } else {
+        messages = data || [];
+      }
       renderMessages();
       if (document.getElementById('messageList')) renderAdminMessages();
     } catch (err) {
@@ -371,16 +404,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (searchInput) searchInput.value = g;
         currentPage = 1;
         renderPagedMovies();
-        sideMenu?.classList.remove('active');
-        menuOverlay?.classList.remove('active');
-        document.body.classList.remove('no-scroll');
+        document.getElementById('sideMenu')?.classList.remove('active');
+        document.getElementById('menuOverlay')?.classList.remove('active');
+        document.body.classList.remove('no-scroll', 'menu-open');
       };
       genreGrid.appendChild(div);
     });
   }
 
   // -------------------- Pagination --------------------
-  function computeTotalPages(length) { return Math.max(1, Math.ceil((length || 0) / PAGE_SIZE)); }
+  function computeTotalPages(length) {
+    return Math.max(1, Math.ceil((length || 0) / PAGE_SIZE));
+  }
 
   function renderPagination(filteredLength) {
     if (!paginationContainer) return;
@@ -397,13 +432,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (page === 'dots') return;
         currentPage = Number(page);
         renderPagedMovies(true);
-        window.scrollTo({ top: document.querySelector('.container')?.offsetTop - 8 || 0, behavior: 'smooth' });
+        const cont = document.querySelector('.container');
+        window.scrollTo({ top: (cont?.offsetTop || 0) - 8, behavior: 'smooth' });
       });
       return btn;
     };
 
     if (total <= 9) {
-      for (let i = 1; i <= total; i++) paginationContainer.appendChild(createBubble(i, i, i === currentPage));
+      for (let i = 1; i <= total; i++) {
+        paginationContainer.appendChild(createBubble(i, i, i === currentPage));
+      }
     } else {
       if (currentPage <= 5) {
         for (let i = 1; i <= 9; i++) paginationContainer.appendChild(createBubble(i, i, i === currentPage));
@@ -430,15 +468,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // -------------------- Render movies (paged) --------------------
   async function renderPagedMovies(skipScroll) {
     if (!moviesGrid || !movieCount) return;
-    const q = (searchInput?.value || '').toLowerCase();
 
+    const q = (searchInput?.value || '').toLowerCase();
     const filtered = movies.filter(m =>
       Object.values(m).some(val => typeof val === 'string' && val.toLowerCase().includes(q))
     );
 
     const totalPages = computeTotalPages(filtered.length);
     if (currentPage > totalPages) currentPage = totalPages;
-
     const start = (currentPage - 1) * PAGE_SIZE;
     const pageItems = filtered.slice(start, start + PAGE_SIZE);
 
@@ -454,12 +491,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const stars = escapeHtml(m.stars || '-');
       const imdb = escapeHtml(m.imdb || '-');
       const release_info = escapeHtml(m.release_info || '-');
-      const genreLinks = (m.genre || '').split(' ').filter(g => g.trim()).map(g => `<a href="#" onclick="(function(){document.getElementById('search').value='${escapeHtml(g)}'; currentPage=1; renderPagedMovies();})();">${escapeHtml(g)}</a>`).join(' ');
+
+      const genreLinks = (m.genre || '')
+        .split(' ')
+        .filter(g => g.trim())
+        .map(g => `<a href="#" onclick="(function(){document.getElementById('search').value='${escapeHtml(g)}'; currentPage=1; renderPagedMovies();})();">${escapeHtml(g)}</a>`)
+        .join(' ');
 
       const card = document.createElement('div');
       card.className = 'movie-card';
       card.dataset.movieId = m.id;
-
       card.innerHTML = `
         <div class="cover-container">
           <div class="cover-blur" style="background-image: url('${cover}');"></div>
@@ -478,7 +519,9 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="field-quote">${director}</div>
 
           <span class="field-label"><i class="bi bi-box-seam"></i> Product:</span>
-          <div class="field-quote">${product !== '-' ? `<a href="#" onclick="(function(){document.getElementById('search').value='${product}'; currentPage=1; renderPagedMovies();})();">${product}</a>` : '-'}</div>
+          <div class="field-quote">
+            ${product !== '-' ? `<a href="#" onclick="(function(){document.getElementById('search').value='${product}'; currentPage=1; renderPagedMovies();})();">${product}</a>` : '-'}
+          </div>
 
           <span class="field-label"><i class="bi bi-star"></i> Stars:</span>
           <div class="field-quote">${stars}</div>
@@ -504,37 +547,30 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="comments-panel-inner">
               <div class="comments-panel-header">
                 <div class="comments-title">Comments</div>
-                
               </div>
               <div class="comments-list" role="log" aria-live="polite"></div>
               <div class="comment-input-row">
-              <div class="name-comments-close">
-              <input class="comment-name" placeholder="Your name" maxlength="60" />
-              <button class="comments-close" aria-label="close comments">&times;</button>
-              </div>
-                
+                <div class="name-comments-close">
+                  <input class="comment-name" placeholder="Your name" maxlength="60" />
+                  <button class="comments-close" aria-label="close comments">&times;</button>
+                </div>
                 <textarea class="comment-text" placeholder="Write a comment..." rows="2"></textarea>
                 <button class="comment-send">Send</button>
               </div>
             </div>
           </div>
-
         </div>
       `;
-
-      // append card to grid
       moviesGrid.appendChild(card);
 
-      // go button behavior
       const goBtn = card.querySelector('.go-btn');
       goBtn?.addEventListener('click', () => {
         const link = goBtn.dataset.link || '#';
         if (link && link !== '#') window.open(link, '_blank');
       });
 
-      // attach comments logic (server)
       attachCommentsHandlers(card, m.id);
-    } // end foreach pageItems
+    }
 
     // synopsis More/Less toggle
     document.querySelectorAll('.synopsis-quote').forEach(quote => {
@@ -544,33 +580,42 @@ document.addEventListener('DOMContentLoaded', () => {
       const fullText = textEl.textContent.trim();
       if (fullText.length > 200) {
         const shortText = fullText.substring(0, 200) + '...';
-        textEl.textContent = shortText;
-        quote.classList.add('collapsed');
-        quote.style.overflow = 'hidden';
-        quote.style.maxHeight = '120px';
-        btn.textContent = 'More';
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          if (quote.classList.contains('collapsed')) {
+        let collapsed = true;
+        function applyState() {
+          if (collapsed) {
+            textEl.textContent = shortText;
+            quote.style.overflow = 'hidden';
+            quote.style.maxHeight = '120px';
+            quote.classList.add('collapsed');
+            btn.textContent = 'More';
+          } else {
             textEl.textContent = fullText;
             quote.style.maxHeight = '1000px';
             quote.classList.remove('collapsed');
             btn.textContent = 'Less';
-          } else {
-            textEl.textContent = shortText;
-            quote.style.maxHeight = '120px';
-            quote.classList.add('collapsed');
-            btn.textContent = 'More';
           }
+        }
+        function toggleQuote() {
+          collapsed = !collapsed;
+          applyState();
+        }
+        applyState();
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleQuote();
+        });
+        quote.addEventListener('click', (e) => {
+          if (e.target.closest('a')) return;
+          if (e.target === btn) return;
+          toggleQuote();
         });
       } else {
         if (btn) btn.remove();
       }
     });
 
-    // pagination render
     renderPagination(filtered.length);
-  } // end renderPagedMovies
+  }
 
   // -------------------- Admin guard & functions --------------------
   async function enforceAdminGuard() {
@@ -609,17 +654,58 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Admin: add/edit movie
+  // -------------------- Admin: movie list render with edit/delete --------------------
+  function renderAdminMovieList(list = movies) {
+    if (!movieList) return;
+    movieList.innerHTML = '';
+    const arr = (list && list.length) ? list : (movies || []);
+    arr.forEach(m => {
+      const row = document.createElement('div');
+      row.className = 'movie-item';
+      row.innerHTML = `
+        <img class="movie-cover" src="${escapeHtml(m.cover || 'https://via.placeholder.com/60x80?text=No+Image')}" alt="${escapeHtml(m.title || '')}">
+        <span class="movie-title">${escapeHtml(m.title || '')}</span>
+        <div class="movie-actions">
+          <button class="btn-edit"><i class="bi bi-pencil"></i> Edit</button>
+          <button class="btn-delete"><i class="bi bi-trash"></i> Delete</button>
+        </div>
+      `;
+      // Edit
+      row.querySelector('.btn-edit')?.addEventListener('click', () => {
+        editingMovie = m; // منطق فایل اول
+        const fields = ['title', 'link', 'synopsis', 'director', 'product', 'stars', 'imdb', 'release_info', 'genre'];
+        fields.forEach(f => {
+          const el = document.getElementById(f);
+          if (el) el.value = m[f] || '';
+        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+      // Delete
+      row.querySelector('.btn-delete')?.addEventListener('click', async () => {
+        if (!confirm('Delete this movie?')) return;
+        const { error } = await supabase.from('movies').delete().eq('id', m.id);
+        if (error) {
+          console.error('delete movie err', error);
+          alert('Delete failed');
+        } else {
+          alert('Movie deleted');
+          await fetchMovies();
+        }
+      });
+      movieList.appendChild(row);
+    });
+  }
+
+  // -------------------- Admin: add/edit movie (RESTORED to first file logic) --------------------
   if (addMovieForm && movieList) {
-    // do guard asynchronously but don't block definition of handlers
     enforceAdminGuard().then(ok => { if (!ok) return; });
 
     addMovieForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const ok = await enforceAdminGuard();
       if (!ok) return;
-      const form = e.target;
-      const editId = form.dataset.editId;
+
+      // آماده‌سازی آپلود کاور در صورت وجود فایل
       const coverInput = document.getElementById('coverFile');
       const coverFile = coverInput?.files?.[0];
       let coverUrl = '';
@@ -627,9 +713,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (coverFile) {
         try {
           const filename = `public/${Date.now()}_${coverFile.name}`;
-          const { data: upData, error: upErr } = await supabase.storage.from('covers').upload(filename, coverFile, { upsert: true });
+          const { data: upData, error: upErr } = await supabase
+            .storage.from('covers')
+            .upload(filename, coverFile, { upsert: true });
           if (upErr) { console.error('upload err', upErr); alert('Upload failed'); return; }
-          const { data: publicUrl } = supabase.storage.from('covers').getPublicUrl(upData.path);
+          const { data: publicUrl } = supabase
+            .storage.from('covers')
+            .getPublicUrl(upData.path);
           coverUrl = publicUrl.publicUrl;
         } catch (err) {
           console.error('upload ex', err);
@@ -638,20 +728,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      if (editId) {
-        const updateData = {};
-        ['title', 'link', 'synopsis', 'director', 'product', 'stars', 'imdb', 'release_info', 'genre'].forEach(f => {
-          const v = (document.getElementById(f)?.value || '').trim();
-          if (v) updateData[f] = v;
-        });
+      // حالت ویرایش: مثل فایل اول
+      if (editingMovie) {
+        const updateData = {
+          title: document.getElementById('title')?.value || '',
+          link: document.getElementById('link')?.value || '',
+          synopsis: document.getElementById('synopsis')?.value || '',
+          director: document.getElementById('director')?.value || '',
+          product: document.getElementById('product')?.value || '',
+          stars: document.getElementById('stars')?.value || '',
+          imdb: document.getElementById('imdb')?.value || '',
+          release_info: document.getElementById('release_info')?.value || '',
+          genre: document.getElementById('genre')?.value || ''
+          // created_at را عمداً نمی‌فرستیم
+        };
         if (coverUrl) updateData.cover = coverUrl;
-        if (Object.keys(updateData).length > 0) {
-          const { error } = await supabase.from('movies').update(updateData).eq('id', editId);
-          if (error) { console.error('movie update err', error); alert('Update failed'); }
-          else { alert('Movie updated'); form.removeAttribute('data-edit-id'); }
+
+        const { error } = await supabase
+          .from('movies')
+          .update(updateData)
+          .eq('id', editingMovie.id);
+
+        if (error) {
+          console.error('movie update err', error);
+          alert('Update failed');
         } else {
-          alert('No changes detected');
+          alert('Movie updated');
+          editingMovie = null;        // ریست منطق ویرایش
+          addMovieForm.reset();       // خالی کردن فرم
+          await fetchMovies();        // رفرش لیست
         }
+
+      // حالت افزودن
       } else {
         if (!coverUrl) { alert('Please select cover'); return; }
         const movie = {
@@ -665,60 +773,20 @@ document.addEventListener('DOMContentLoaded', () => {
           imdb: document.getElementById('imdb')?.value || '',
           release_info: document.getElementById('release_info')?.value || '',
           genre: document.getElementById('genre')?.value || ''
+          // created_at به صورت اتوماتیک ست می‌شود
         };
         const { error } = await supabase.from('movies').insert([movie]);
-        if (error) { console.error('movie insert err', error); alert('Add movie failed'); }
-        else { alert('Movie added'); form.reset(); }
-      }
-      await fetchMovies();
-    });
-
-    function renderAdminMovieList(list = movies) {
-      movieList.innerHTML = '';
-      const arr = (list && list.length) ? list : (movies || []);
-      arr.forEach(m => {
-        const row = document.createElement('div');
-        row.className = 'movie-item';
-        row.innerHTML = `
-          <img class="movie-cover" src="${escapeHtml(m.cover || 'https://via.placeholder.com/60x80?text=No+Image')}" alt="${escapeHtml(m.title || '')}">
-          <span class="movie-title">${escapeHtml(m.title || '')}</span>
-          <div class="movie-actions">
-            <button class="btn-edit" data-id="${m.id}"><i class="bi bi-pencil"></i> Edit</button>
-            <button class="btn-delete" data-id="${m.id}"><i class="bi bi-trash"></i> Delete</button>
-          </div>
-        `;
-        movieList.appendChild(row);
-      });
-    }
-
-    movieList.addEventListener('click', async (e) => {
-      const btn = e.target.closest('button');
-      if (!btn) return;
-      const id = btn.dataset.id;
-      if (!id) return;
-
-      if (btn.classList.contains('btn-edit')) {
-        const movie = movies.find(x => String(x.id) === String(id));
-        if (movie) {
-          ['title', 'link', 'synopsis', 'director', 'product', 'stars', 'imdb', 'release_info', 'genre'].forEach(f => {
-            const el = document.getElementById(f);
-            if (el) el.value = movie[f] || '';
-          });
-          addMovieForm.dataset.editId = movie.id;
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (error) {
+          console.error('movie insert err', error);
+          alert('Add movie failed');
+        } else {
+          alert('Movie added');
+          addMovieForm.reset();
+          await fetchMovies();
         }
       }
-
-      if (btn.classList.contains('btn-delete')) {
-        if (!confirm('Delete this movie?')) return;
-        const { error } = await supabase.from('movies').delete().eq('id', id);
-        if (error) { console.error('delete movie err', error); alert('Delete failed'); }
-        else { alert('Movie deleted'); await fetchMovies(); }
-      }
     });
-
-    renderAdminMovieList();
-  } // end admin add/edit movie
+  }
 
   // -------------------- Admin messages management --------------------
   if (addMessageForm && messageList) {
@@ -730,7 +798,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!text) return alert('Message cannot be empty');
       const { error } = await supabase.from('messages').insert([{ text }]);
       if (error) { console.error('insert message err', error); alert('Add message failed'); }
-      else { document.getElementById('messageText').value = ''; await fetchMessages(); alert('Message added'); }
+      else {
+        document.getElementById('messageText').value = '';
+        await fetchMessages();
+        alert('Message added');
+      }
     });
 
     function renderAdminMessages() {
@@ -787,7 +859,29 @@ document.addEventListener('DOMContentLoaded', () => {
         filtered.forEach(m => {
           const row = document.createElement('div');
           row.className = 'movie-item';
-          row.innerHTML = `<img class="movie-cover" src="${escapeHtml(m.cover || 'https://via.placeholder.com/60x80?text=No+Image')}" alt="${escapeHtml(m.title || '')}"><span class="movie-title">${escapeHtml(m.title || '')}</span><div class="movie-actions"><button class="btn-edit" data-id="${m.id}"><i class="bi bi-pencil"></i> Edit</button><button class="btn-delete" data-id="${m.id}"><i class="bi bi-trash"></i> Delete</button></div>`;
+          row.innerHTML = `
+            <img class="movie-cover" src="${escapeHtml(m.cover || 'https://via.placeholder.com/60x80?text=No+Image')}" alt="${escapeHtml(m.title || '')}">
+            <span class="movie-title">${escapeHtml(m.title || '')}</span>
+            <div class="movie-actions">
+              <button class="btn-edit"><i class="bi bi-pencil"></i> Edit</button>
+              <button class="btn-delete"><i class="bi bi-trash"></i> Delete</button>
+            </div>
+          `;
+          row.querySelector('.btn-edit')?.addEventListener('click', () => {
+            editingMovie = m;
+            const fields = ['title', 'link', 'synopsis', 'director', 'product', 'stars', 'imdb', 'release_info', 'genre'];
+            fields.forEach(f => {
+              const el = document.getElementById(f);
+              if (el) el.value = m[f] || '';
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          });
+          row.querySelector('.btn-delete')?.addEventListener('click', async () => {
+            if (!confirm('Delete this movie?')) return;
+            const { error } = await supabase.from('movies').delete().eq('id', m.id);
+            if (error) { console.error('delete movie err', error); alert('Delete failed'); }
+            else { alert('Movie deleted'); await fetchMovies(); }
+          });
           movieListEl.appendChild(row);
         });
       }
@@ -797,5 +891,4 @@ document.addEventListener('DOMContentLoaded', () => {
   // -------------------- Initial load --------------------
   fetchMovies();
   fetchMessages();
-
 }); // end DOMContentLoaded

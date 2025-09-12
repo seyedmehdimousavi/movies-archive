@@ -518,3 +518,21 @@ body {
   justify-content: space-between;
   gap: .5 rem;
 }
+.comment-bubble {
+  background: #f1f1f1;
+  border-radius: 15px;
+  padding: 10px 15px;
+  margin: 5px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.comment-text {
+  flex: 1;
+  margin-right: 10px;
+}
+
+.comment-actions button {
+  margin-left: 5px;
+}
