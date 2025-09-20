@@ -481,7 +481,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     moviesGrid.innerHTML = '';
     movieCount.innerText = `🎞️ Number of movies: ${filtered.length}`;
-
     for (const m of pageItems) {
       const cover = escapeHtml(m.cover || 'https://via.placeholder.com/300x200?text=No+Image');
       const title = escapeHtml(m.title || '-');
@@ -510,27 +509,27 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="movie-info">
           <div class="movie-title">${title}</div>
 
-          <span class="field-label" style="display: flex; align-items: center;"><img src="images/icons8-spiral-bound-booklet-48.png" style="width: 20px; height: 20px;">Synopsis:</span>
+          <span class="field-label" style="display: flex; align-items: center;"><img src="images/icons8-note.apng" style="width: 20px; height: 20px;">Synopsis:</span>
           <div class="field-quote synopsis-quote">
             <div class="quote-text">${synopsis}</div>
             <button class="quote-toggle-btn">More</button>
           </div>
 
-          <span class="field-label" style="display: flex; align-items: center;"><img src="images/icons8-movie-video-camera-94.png" style="width: 20px; height: 20px;"> Director:</span>
+          <span class="field-label" style="display: flex; align-items: center;"><img src="images/icons8-movie.apng" style="width: 20px; height: 20px;"> Director:</span>
           <div class="field-quote">${director}</div>
 
-          <span class="field-label" style="display: flex; align-items: center;"><img src="images/icons8-globe-showing-asia-australia-48.png" style="width: 20px; height: 20px;"> Product:</span>
+          <span class="field-label" style="display: flex; align-items: center;"><img src="images/icons8-location.apng" style="width: 20px; height: 20px;"> Product:</span>
           <div class="field-quote">
             ${product !== '-' ? `<a href="#" onclick="(function(){document.getElementById('search').value='${product}'; currentPage=1; renderPagedMovies();})();">${product}</a>` : '-'}
           </div>
 
-          <span class="field-label" style="display: flex; align-items: center;"><img src="images/icons8-star-64.png" style="width: 20px; height: 20px;"> Stars:</span>
+          <span class="field-label" style="display: flex; align-items: center;"><img src="images/icons8-star.apng" style="width: 20px; height: 20px;"> Stars:</span>
           <div class="field-quote">${stars}</div>
 
           <span class="field-label" style="display: flex; align-items: center;"><img src="images/icons8-imdb-48.png" style="width: 20px; height: 20px;"> IMDB:</span>
           <div class="field-quote">${imdb}</div>
 
-          <span class="field-label" style="display: flex; align-items: center;"><img src="images/icons8-calendar-48.png" style="width: 20px; height: 20px;"> Release:</span>
+          <span class="field-label" style="display: flex; align-items: center;"><img src="images/icons8-calendar.apng" style="width: 20px; height: 20px;"> Release:</span>
           <div class="field-quote">${release_info}</div>
 
           <span class="field-label" style="display: flex; align-items: center;"><img src="images/icons8-comedy-96.png" style="width: 20px; height: 20px;"> Genre:</span>
@@ -541,7 +540,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="comment-summary" title="Open comments">
             <div class="avatars" aria-hidden="true"></div>
             <div class="comments-count">0 comments</div>
-            <button class="enter-comments" aria-label="open comments"><img src="images/icons8-chat-message-48.png" style="width: 22px; height: 22px;"></button>
+            <button class="enter-comments" aria-label="open comments"><img src="images/icons8-comment.apng" style="width: 22px; height: 22px;"></button>
           </div>
 
           <div class="comments-panel" aria-hidden="true">
