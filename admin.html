@@ -48,6 +48,21 @@
       <input id="imdb" type="text" placeholder="IMDB" />
       <input id="release_info" type="text" placeholder="Release Info" />
       <input id="genre" type="text" placeholder="Genre (space-separated)" />
+      <!-- Collection (episodes) -->
+<div class="form-group" id="collectionGroup" style="margin-top:10px;">
+  <button type="button" id="collectionToggle" class="admin-submit" style="background: var(--btn-day);">
+    Collection
+  </button>
+  <div id="collectionContainer" style="display:none; margin-top:10px;">
+    <!-- episodes will be added dynamically -->
+    <div style="display:flex; justify-content:flex-end; margin-top:8px;">
+      <button type="button" id="addEpisodeBtn" class="admin-submit" style="width:auto; padding:8px 12px;">
+        Add next episode
+      </button>
+    </div>
+  </div>
+</div>
+
       <button type="submit" class="admin-submit">Submit and Send<i class="bi bi-cloud-upload"></i></button>
     </form>
     </section>

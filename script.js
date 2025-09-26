@@ -689,183 +689,185 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // -------------------- Render movies (paged) --------------------
-  async function renderPagedMovies(skipScroll) {
-    if (!moviesGrid || !movieCount) return;
-    const q = (searchInput?.value || '').toLowerCase();
+// -------------------- Render movies (paged) --------------------
+// -------------------- Render movies (paged) --------------------
+async function renderPagedMovies(skipScroll) {
+  if (!moviesGrid || !movieCount) return;
+  const q = (searchInput?.value || '').toLowerCase();
+  const filtered = movies.filter(m =>
+    Object.values(m).some(val => typeof val === 'string' && val.toLowerCase().includes(q))
+  );
+  const totalPagesVal = computeTotalPages(filtered.length);
+  if (currentPage > totalPagesVal) currentPage = totalPagesVal;
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageItems = filtered.slice(start, start + PAGE_SIZE);
 
-    const filtered = movies.filter(m =>
-      Object.values(m).some(val => typeof val === 'string' && val.toLowerCase().includes(q))
-    );
+  moviesGrid.innerHTML = '';
+  movieCount.innerText = `🎞️ Number of movies: ${filtered.length}`;
 
-    const totalPages = computeTotalPages(filtered.length);
-    if (currentPage > totalPages) currentPage = totalPages;
+  for (const m of pageItems) {
+    const cover = escapeHtml(m.cover || 'https://via.placeholder.com/300x200?text=No+Image');
+    const title = escapeHtml(m.title || '-');
+    const synopsis = escapeHtml((m.synopsis || '-').trim());
+    const director = escapeHtml(m.director || '-');
+    const product = escapeHtml(m.product || '-');
+    const stars = escapeHtml(m.stars || '-');
+    const imdb = escapeHtml(m.imdb || '-');
+    const release_info = escapeHtml(m.release_info || '-');
+    const genreLinks = (m.genre || '')
+      .split(' ')
+      .filter(g => g.trim())
+      .map(g => `<a href="#" onclick="(function(){ const searchEl=document.getElementById('search'); searchEl.value='${escapeHtml(g)}'; searchEl.dispatchEvent(new Event('input')); })();">${escapeHtml(g)}</a>`)
+      .join(' ');
 
-    const start = (currentPage - 1) * PAGE_SIZE;
-    const pageItems = filtered.slice(start, start + PAGE_SIZE);
+    const card = document.createElement('div');
+    card.className = 'movie-card';
+    card.dataset.movieId = m.id;
+    card.innerHTML = `
+      <div class="cover-container">
+        <div class="cover-blur" style="background-image: url('${cover}');"></div>
+        <img class="cover-image" src="${cover}" alt="${title}">
+      </div>
+      <div class="movie-info">
+        <div class="movie-title">${title}</div>
 
-    moviesGrid.innerHTML = '';
-    movieCount.innerText = `🎞️ Number of movies: ${filtered.length}`;
-
-    for (const m of pageItems) {
-      const cover = escapeHtml(m.cover || 'https://via.placeholder.com/300x200?text=No+Image');
-      const title = escapeHtml(m.title || '-');
-      const synopsis = escapeHtml((m.synopsis || '-').trim());
-      const director = escapeHtml(m.director || '-');
-      const product = escapeHtml(m.product || '-');
-      const stars = escapeHtml(m.stars || '-');
-      const imdb = escapeHtml(m.imdb || '-');
-      const release_info = escapeHtml(m.release_info || '-');
-
-      const genreLinks = (m.genre || '')
-        .split(' ')
-        .filter(g => g.trim())
-        .map(g => `<a href="#" onclick="(function(){ const searchEl = document.getElementById('search'); searchEl.value = '${escapeHtml(g)}'; searchEl.dispatchEvent(new Event('input')); })();">${escapeHtml(g)}</a>`)
-        .join(' ');
-
-      const card = document.createElement('div');
-      card.className = 'movie-card';
-      card.dataset.movieId = m.id;
-
-      card.innerHTML = `
-        <div class="cover-container">
-          <div class="cover-blur" style="background-image: url('${cover}');"></div>
-          <img class="cover-image" src="${cover}" alt="${title}">
+        <span class="field-label"><img src="images/icons8-note.apng" style="width:20px;height:20px;"> Synopsis:</span>
+        <div class="field-quote synopsis-quote">
+          <div class="quote-text">${synopsis}</div>
+          <button class="quote-toggle-btn">More</button>
         </div>
 
-        <div class="movie-info">
-          <div class="movie-title">${title}</div>
+        <span class="field-label"><img src="images/icons8-movie.apng" style="width:20px;height:20px;"> Director:</span>
+        <div class="field-quote">${director}</div>
 
-          <span class="field-label" style="display: flex; align-items: center;">
-            <img src="images/icons8-note.apng" style="width: 20px; height: 20px;">Synopsis:
-          </span>
-          <div class="field-quote synopsis-quote">
-            <div class="quote-text">${synopsis}</div>
-            <button class="quote-toggle-btn">More</button>
-          </div>
+        <span class="field-label"><img src="images/icons8-location.apng" style="width:20px;height:20px;"> Product:</span>
+        <div class="field-quote">${product !== '-' ? `<a href="#" onclick="(function(){ const searchEl=document.getElementById('search'); searchEl.value='${product}'; searchEl.dispatchEvent(new Event('input')); })();">${product}</a>` : '-'}</div>
 
-          <span class="field-label" style="display: flex; align-items: center;">
-            <img src="images/icons8-movie.apng" style="width: 20px; height: 20px;"> Director:
-          </span>
-          <div class="field-quote">${director}</div>
+        <span class="field-label"><img src="images/icons8-star.apng" style="width:20px;height:20px;"> Stars:</span>
+        <div class="field-quote">${stars}</div>
 
-          <span class="field-label" style="display: flex; align-items: center;">
-            <img src="images/icons8-location.apng" style="width: 20px; height: 20px;"> Product:
-          </span>
-          <div class="field-quote">
-            ${product !== '-' ? `<a href="#" onclick="(function(){ const searchEl = document.getElementById('search'); searchEl.value = '${product}'; searchEl.dispatchEvent(new Event('input')); })();">${product}</a>` : '-'}
-          </div>
+        <span class="field-label"><img src="images/icons8-imdb-48.png" style="width:20px;height:20px;"> IMDB:</span>
+        <div class="field-quote">${imdb}</div>
 
-          <span class="field-label" style="display: flex; align-items: center;">
-            <img src="images/icons8-star.apng" style="width: 20px; height: 20px;"> Stars:
-          </span>
-          <div class="field-quote">${stars}</div>
+        <span class="field-label"><img src="images/icons8-calendar.apng" style="width:20px;height:20px;"> Release:</span>
+        <div class="field-quote">${release_info}</div>
 
-          <span class="field-label" style="display: flex; align-items: center;">
-            <img src="images/icons8-imdb-48.png" class="imdb-bell" style="width: 20px; height: 20px;"> IMDB:
-          </span>
-          <div class="field-quote">${imdb}</div>
+        <span class="field-label"><img src="images/icons8-comedy-96.png" style="width:20px;height:20px;"> Genre:</span>
+        <div class="field-quote">${genreLinks || '-'}</div>
+        <!-- بخش اپیزودها -->
+        <div class="episodes-container" data-movie-id="${m.id}">
+          <div class="episodes-list"></div>
+        </div>
+        <button class="go-btn" data-link="${escapeHtml(m.link || '#')}">Go to file</button>
+        <div class="comment-summary">
+          <div class="avatars"></div>
+          <div class="comments-count">0 comments</div>
+          <button class="enter-comments"><img src="images/icons8-comment.apng" style="width:22px;height:22px;"></button>
+        </div>
 
-          <span class="field-label" style="display: flex; align-items: center;">
-            <img src="images/icons8-calendar.apng" style="width: 20px; height: 20px;"> Release:
-          </span>
-          <div class="field-quote">${release_info}</div>
-
-          <span class="field-label" style="display: flex; align-items: center;">
-            <img src="images/icons8-comedy-96.png" class="genre-bell" style="width: 20px; height: 20px;"> Genre:
-          </span>
-          <div class="field-quote">${genreLinks || '-'}</div>
-
-          <button class="go-btn" data-link="${escapeHtml(m.link || '#')}">Go to file</button>
-
-          <div class="comment-summary" title="Open comments">
-            <div class="avatars" aria-hidden="true"></div>
-            <div class="comments-count">0 comments</div>
-            <button class="enter-comments" aria-label="open comments">
-              <img src="images/icons8-comment.apng" style="width: 22px; height: 22px;">
-            </button>
-          </div>
-
-          <div class="comments-panel" aria-hidden="true">
-            <div class="comments-panel-inner">
-              <div class="comments-panel-header">
-                <div class="comments-title">Comments</div>
+        <div class="comments-panel" aria-hidden="true">
+          <div class="comments-panel-inner">
+            <div class="comments-panel-header"><div class="comments-title">Comments</div></div>
+            <div class="comments-list"></div>
+            <div class="comment-input-row">
+              <div class="name-comments-close">
+                <input class="comment-name" placeholder="Your name" maxlength="60" />
+                <button class="comments-close">&times;</button>
               </div>
-              <div class="comments-list" role="log" aria-live="polite"></div>
-              <div class="comment-input-row">
-                <div class="name-comments-close">
-                  <input class="comment-name" placeholder="Your name" maxlength="60" />
-                  <button class="comments-close" aria-label="close comments">&times;</button>
-                </div>
-                <textarea class="comment-text" placeholder="Write a comment..." rows="2"></textarea>
-                <button class="comment-send">Send</button>
-              </div>
+              <textarea class="comment-text" placeholder="Write a comment..." rows="2"></textarea>
+              <button class="comment-send">Send</button>
             </div>
           </div>
         </div>
-      `;
+      </div>
+    `;
+    moviesGrid.appendChild(card);
 
-      moviesGrid.appendChild(card);
-
-      const goBtn = card.querySelector('.go-btn');
-      goBtn?.addEventListener('click', () => {
-        const link = goBtn.dataset.link || '#';
-        if (link && link !== '#') window.open(link, '_blank');
-      });
-
-      attachCommentsHandlers(card, m.id);
-    }
-
-    // synopsis More/Less toggle
-    document.querySelectorAll('.synopsis-quote').forEach(quote => {
-      const textEl = quote.querySelector('.quote-text');
-      const btn = quote.querySelector('.quote-toggle-btn');
-      if (!textEl || !btn) return;
-
-      const fullText = textEl.textContent.trim();
-      if (fullText.length > 200) {
-        const shortText = fullText.substring(0, 200) + '…';
-        let collapsed = true;
-
-        function applyState() {
-          if (collapsed) {
-            textEl.textContent = shortText;
-            quote.style.overflow = 'hidden';
-            quote.style.maxHeight = '120px';
-            quote.classList.add('collapsed');
-            btn.textContent = 'More';
-          } else {
-            textEl.textContent = fullText;
-            quote.style.maxHeight = '1000px';
-            quote.classList.remove('collapsed');
-            btn.textContent = 'Less';
-          }
-        }
-
-        function toggleQuote() {
-          collapsed = !collapsed;
-          applyState();
-        }
-
-        applyState();
-
-        btn.addEventListener('click', e => {
-          e.stopPropagation();
-          toggleQuote();
-        });
-
-        quote.addEventListener('click', e => {
-          if (e.target.closest('a')) return;
-          if (e.target === btn) return;
-          toggleQuote();
-        });
-      } else {
-        if (btn) btn.remove();
-      }
+    const goBtn = card.querySelector('.go-btn');
+    goBtn?.addEventListener('click', () => {
+      const link = goBtn.dataset.link || '#';
+      if (link && link !== '#') window.open(link, '_blank');
     });
 
-    renderPagination(filtered.length);
+    attachCommentsHandlers(card, m.id);
+
+    // --- بارگذاری اپیزودهای این فیلم ---
+    (async () => {
+      const { data: eps, error: epsErr } = await supabase
+        .from('collection_episodes')
+        .select('*')
+        .eq('movie_id', m.id)
+        .order('episode_number', { ascending: true });
+
+      if (epsErr) {
+        console.error('Error loading episodes:', epsErr);
+        return;
+      }
+
+      if (eps && eps.length > 0) {
+        const listEl = card.querySelector('.episodes-list');
+        listEl.innerHTML = eps.map((ep, idx) => `
+          <div class="episode-card ${idx === 0 ? 'active' : ''}" data-link="${ep.episode_link}">
+            <img src="${escapeHtml(ep.episode_cover || 'https://via.placeholder.com/120x80?text=No+Cover')}" 
+                 alt="${escapeHtml(ep.episode_title)}" class="episode-cover">
+            <div class="episode-title">${escapeHtml(ep.episode_title)}</div>
+          </div>
+        `).join('');
+
+        // تغییر لینک Go to file بر اساس اپیزود فعال
+        goBtn.dataset.link = eps[0].episode_link;
+
+        listEl.querySelectorAll('.episode-card').forEach(cardEl => {
+          cardEl.addEventListener('click', () => {
+            listEl.querySelectorAll('.episode-card').forEach(c => c.classList.remove('active'));
+            cardEl.classList.add('active');
+            goBtn.dataset.link = cardEl.dataset.link;
+          });
+        });
+
+        // اضافه کردن برچسب "کالکشن" کنار عنوان فیلم
+        const titleEl = card.querySelector('.movie-title');
+        if (titleEl && !titleEl.querySelector('.collection-badge')) {
+          const badge = document.createElement('span');
+          badge.className = 'collection-badge';
+          badge.textContent = 'کالکشن';
+          titleEl.appendChild(badge);
+        }
+      }
+    })();
   }
+
+  // synopsis toggle
+  document.querySelectorAll('.synopsis-quote').forEach(quote => {
+    const textEl = quote.querySelector('.quote-text');
+    const btn = quote.querySelector('.quote-toggle-btn');
+    if (!textEl || !btn) return;
+    const fullText = textEl.textContent.trim();
+    if (fullText.length > 200) {
+      const shortText = fullText.substring(0, 200) + '…';
+      let collapsed = true;
+      function applyState() {
+        if (collapsed) {
+          textEl.textContent = shortText;
+          btn.textContent = 'More';
+        } else {
+          textEl.textContent = fullText;
+          btn.textContent = 'Less';
+        }
+      }
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        collapsed = !collapsed;
+        applyState();
+      });
+      applyState();
+    } else {
+      btn.remove();
+    }
+  });
+
+  renderPagination(filtered.length);
+}
 
   // -------------------- Admin guard & functions --------------------
   async function enforceAdminGuard() {
@@ -1057,85 +1059,211 @@ function renderAdminPagination() {
 
 // شروع
 loadAdminMovies();
+// --- Collection helpers ---
+// جمع‌آوری اپیزودها از فرم ادمین
+function collectEpisodesFromForm() {
+  const blocks = document.querySelectorAll('.episode-block');
+  const list = [];
+  blocks.forEach((block, idx) => {
+    const title = (block.querySelector('.episode-title')?.value || '').trim();
+    const link = (block.querySelector('.episode-link')?.value || '').trim();
+    const coverFile = block.querySelector('.episode-cover')?.files?.[0] || null;
+    if (title && link) {
+      list.push({
+        episode_number: idx + 1,
+        episode_title: title,
+        episode_link: link,
+        coverFile
+      });
+    }
+  });
+  return list;
+}
 
-  // -------------------- Admin: add/edit movie --------------------
-  if (addMovieForm && movieList) {
-    enforceAdminGuard().then(ok => { if (!ok) return; });
+// آپلود کاور اپیزود در bucket: covers
+async function uploadEpisodeCover(coverFile) {
+  if (!coverFile) return null;
+  const filename = `episodes/${Date.now()}_${coverFile.name}`;
+  const { data: upData, error: upErr } = await supabase
+    .storage
+    .from('covers')
+    .upload(filename, coverFile, { upsert: true });
+  if (upErr) throw upErr;
+  const { data: publicUrl } = supabase.storage.from('covers').getPublicUrl(upData.path);
+  return publicUrl?.publicUrl || null;
+}
 
-    addMovieForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const ok = await enforceAdminGuard();
-      if (!ok) return;
+// -------------------- Admin: add/edit movie --------------------
+if (addMovieForm && movieList) {
+  enforceAdminGuard().then(ok => { if (!ok) return; });
 
-      const coverInput = document.getElementById('coverFile');
-      const coverFile = coverInput?.files?.[0];
-      let coverUrl = '';
+  addMovieForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const ok = await enforceAdminGuard();
+    if (!ok) return;
 
-      if (coverFile) {
-        try {
-          const filename = `public/${Date.now()}_${coverFile.name}`;
-          const { data: upData, error: upErr } = await supabase.storage.from('covers').upload(filename, coverFile, { upsert: true });
-          if (upErr) { console.error('upload err', upErr); showToast('Upload failed'); return; }
-          const { data: publicUrl } = supabase.storage.from('covers').getPublicUrl(upData.path);
-          coverUrl = publicUrl.publicUrl;
-        } catch (err) {
-          console.error('upload ex', err);
-          showToast('Upload failed');
-          return;
-        }
+    // --- آپلود کاور فیلم ---
+    const coverInput = document.getElementById('coverFile');
+    const coverFile = coverInput?.files?.[0];
+    let coverUrl = '';
+    if (coverFile) {
+      try {
+        const filename = `public/${Date.now()}_${coverFile.name}`;
+        const { data: upData, error: upErr } = await supabase
+          .storage
+          .from('covers')
+          .upload(filename, coverFile, { upsert: true });
+        if (upErr) { console.error('upload err', upErr); showToast('Upload failed'); return; }
+        const { data: publicUrl } = supabase.storage.from('covers').getPublicUrl(upData.path);
+        coverUrl = publicUrl.publicUrl;
+      } catch (err) {
+        console.error('upload ex', err);
+        showToast('Upload failed');
+        return;
       }
+    }
 
-      if (editingMovie) {
-        const updateData = {
-          title: document.getElementById('title')?.value || '',
-          link: document.getElementById('link')?.value || '',
-          synopsis: document.getElementById('synopsis')?.value || '',
-          director: document.getElementById('director')?.value || '',
-          product: document.getElementById('product')?.value || '',
-          stars: document.getElementById('stars')?.value || '',
-          imdb: document.getElementById('imdb')?.value || '',
-          release_info: document.getElementById('release_info')?.value || '',
-          genre: document.getElementById('genre')?.value || ''
-        };
-        if (coverUrl) updateData.cover = coverUrl;
+    // --- حالت ویرایش فیلم ---
+    if (editingMovie) {
+      const updateData = {
+        title: document.getElementById('title')?.value || '',
+        link: document.getElementById('link')?.value || '',
+        synopsis: document.getElementById('synopsis')?.value || '',
+        director: document.getElementById('director')?.value || '',
+        product: document.getElementById('product')?.value || '',
+        stars: document.getElementById('stars')?.value || '',
+        imdb: document.getElementById('imdb')?.value || '',
+        release_info: document.getElementById('release_info')?.value || '',
+        genre: document.getElementById('genre')?.value || ''
+      };
+      if (coverUrl) updateData.cover = coverUrl;
 
-        const { error } = await supabase.from('movies').update(updateData).eq('id', editingMovie.id);
-        if (error) {
-          console.error('movie update err', error);
-          showToast('Update failed');
-        } else {
-          showToast('Movie updated');
-          editingMovie = null;
-          addMovieForm.reset();
-          await fetchMovies();
-        }
+      const { error } = await supabase.from('movies').update(updateData).eq('id', editingMovie.id);
+      if (error) {
+        console.error('movie update err', error);
+        showToast('Update failed');
       } else {
-        if (!coverUrl) { showToast('Please select cover'); return; }
-        const movie = {
-          title: document.getElementById('title')?.value || '',
-          cover: coverUrl,
-          link: document.getElementById('link')?.value || '',
-          synopsis: document.getElementById('synopsis')?.value || '',
-          director: document.getElementById('director')?.value || '',
-          product: document.getElementById('product')?.value || '',
-          stars: document.getElementById('stars')?.value || '',
-          imdb: document.getElementById('imdb')?.value || '',
-          release_info: document.getElementById('release_info')?.value || '',
-          genre: document.getElementById('genre')?.value || ''
-        };
-        const { error } = await supabase.from('movies').insert([movie]);
-        if (error) {
-          console.error('movie insert err', error);
-          showToast('Add movie failed');
-        } else {
-          showToast('Movie added');
-          addMovieForm.reset();
-          await fetchMovies();
+        // --- اپیزودها هنگام ویرایش ---
+        const eps = collectEpisodesFromForm();
+        try {
+          // حذف اپیزودهای قبلی
+          await supabase.from('collection_episodes').delete().eq('movie_id', editingMovie.id);
+
+          // درج اپیزودهای جدید
+          if (eps.length > 0) {
+            const payload = [];
+            for (const ep of eps) {
+              let episode_cover = null;
+              if (ep.coverFile) {
+                try {
+                  episode_cover = await uploadEpisodeCover(ep.coverFile);
+                } catch (upErr) {
+                  console.error('episode cover upload err', upErr);
+                  showToast('Error uploading episode cover');
+                }
+              }
+              payload.push({
+                movie_id: editingMovie.id,
+                episode_number: ep.episode_number,
+                episode_title: ep.episode_title,
+                episode_link: ep.episode_link,
+                episode_cover
+              });
+            }
+            const { error: epErr } = await supabase
+              .from('collection_episodes')
+              .insert(payload);
+            if (epErr) {
+              console.error('episodes insert err', epErr);
+              showToast('Error adding episodes');
+            }
+          }
+        } catch (err) {
+          console.error('episodes update flow err', err);
+          showToast('Error updating episodes');
+        }
+
+        showToast('Movie updated');
+        editingMovie = null;
+        addMovieForm.reset();
+        await fetchMovies();
+      }
+    }
+
+    // --- حالت افزودن فیلم جدید ---
+    else {
+      if (!coverUrl) { showToast('Please select cover'); return; }
+
+      const movie = {
+        title: document.getElementById('title')?.value || '',
+        cover: coverUrl,
+        link: document.getElementById('link')?.value || '',
+        synopsis: document.getElementById('synopsis')?.value || '',
+        director: document.getElementById('director')?.value || '',
+        product: document.getElementById('product')?.value || '',
+        stars: document.getElementById('stars')?.value || '',
+        imdb: document.getElementById('imdb')?.value || '',
+        release_info: document.getElementById('release_info')?.value || '',
+        genre: document.getElementById('genre')?.value || ''
+      };
+
+      // درج فیلم و گرفتن id
+      const { data: inserted, error: insErr } = await supabase
+        .from('movies')
+        .insert([movie])
+        .select()
+        .single();
+
+      if (insErr) {
+        console.error('movie insert err', insErr);
+        showToast('Add movie failed: ' + insErr.message);
+        return;
+      }
+
+      const movieId = inserted.id;
+
+      // --- اپیزودها هنگام افزودن ---
+      const eps = collectEpisodesFromForm();
+      if (eps.length > 0) {
+        try {
+          const payload = [];
+          for (const ep of eps) {
+            let episode_cover = null;
+            if (ep.coverFile) {
+              try {
+                episode_cover = await uploadEpisodeCover(ep.coverFile);
+              } catch (upErr) {
+                console.error('episode cover upload err', upErr);
+                showToast('Error uploading episode cover');
+              }
+            }
+            payload.push({
+              movie_id: movieId,
+              episode_number: ep.episode_number,
+              episode_title: ep.episode_title,
+              episode_link: ep.episode_link,
+              episode_cover
+            });
+          }
+          const { error: epErr } = await supabase
+            .from('collection_episodes')
+            .insert(payload);
+          if (epErr) {
+            console.error('episodes insert err', epErr);
+            showToast('Error adding episodes');
+          }
+        } catch (err) {
+          console.error('episodes processing err', err);
+          showToast('Error processing episodes');
         }
       }
-    });
-  }
 
+      showToast('Movie added');
+      addMovieForm.reset();
+      await fetchMovies();
+    }
+  });
+}
   // -------------------- Admin messages management --------------------
   if (addMessageForm && messageList) {
     enforceAdminGuard().then(ok => { if (!ok) return; });
@@ -1439,7 +1567,55 @@ loadAdminMovies();
 
     fetchAdminSocialLinks();
   }
+// مدیریت اپیزودها در فرم ادمین
+let episodeCount = 0;
 
+const collectionToggle = document.getElementById("collectionToggle");
+const collectionContainer = document.getElementById("collectionContainer");
+const addEpisodeBtn = document.getElementById("addEpisodeBtn");
+
+// باز و بسته کردن بخش کالکشن
+if (collectionToggle) {
+  collectionToggle.addEventListener("click", () => {
+    collectionContainer.style.display =
+      collectionContainer.style.display === "none" ? "block" : "none";
+  });
+}
+
+// افزودن اپیزود جدید
+function addEpisodeFields() {
+  episodeCount++;
+
+  const wrapper = document.createElement("div");
+  wrapper.classList.add("episode-block");
+  wrapper.style.marginBottom = "10px";
+
+  wrapper.innerHTML = `
+    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+      <input type="text" placeholder="Episode ${episodeCount} Title" class="episode-title" />
+      <input type="text" placeholder="Episode ${episodeCount} File Link" class="episode-link" />
+      <input type="file" class="episode-cover" />
+      <button type="button" class="remove-episode" 
+        style="background:red; color:white; border:none; padding:4px 8px; border-radius:4px;">
+        ❌
+      </button>
+    </div>
+  `;
+
+  // دکمه حذف اپیزود
+  wrapper.querySelector(".remove-episode").addEventListener("click", () => {
+    wrapper.remove();
+    episodeCount--;
+  });
+
+  // اضافه کردن قبل از دکمه Add next episode
+  collectionContainer.insertBefore(wrapper, addEpisodeBtn.parentElement);
+}
+
+// رویداد دکمه Add next episode
+if (addEpisodeBtn) {
+  addEpisodeBtn.addEventListener("click", addEpisodeFields);
+}
   // -------------------- Initial load --------------------
   fetchMovies();
   fetchMessages();
