@@ -174,10 +174,7 @@ Body.dark .genre-chip{background:rgba(255,255,255,0.08)}
     background-clip: text;
     -webkit-background-clip: text;
   }
-  Body.dark .movie-count{
-        Background: rgba(255,255,255,0.08);
-    Color: #e6eef6;
-  }
+  
 
 .movies-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
 
