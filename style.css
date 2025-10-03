@@ -180,9 +180,21 @@ Body.dark .genre-chip{background:rgba(255,255,255,0.08)}
 /* movie card */
 .movie-card{border-radius:16px;background:var(--post-day);box-shadow:0 6px 16px rgba(0,0,0,0.08);overflow:hidden;position:relative}
 Body.dark .movie-card{background:var(--post-night);color:#e6eef6}
-.cover-container{position:relative;height:300px}
+.cover-container{
+  display: flex;
+  justify-content: center;
+  position:relative;
+  height: 400px;
+  
+}
 .cover-blur{position:absolute;inset:0;background-size:cover;background-position:center;filter:blur(20px)}
-.cover-image{position:relative;z-index:1;width:100%;height:100%;object-fit:contain;padding:8px}
+.cover-image{
+  position:relative;
+  z-index:1;
+  border-radius: 15px;
+  height:100%;
+  object-fit:contain;
+  padding:8px;}
 .movie-info{padding:12px}
 .field-label{
   display:block;
@@ -352,7 +364,12 @@ Body.dark .admin-submit{background:var(--btn-night)}
   Background:var(--post-day)
 }
 Body.dark .movie-item,body.dark .message-item{background:var(--post-night)}
-.movie-cover{width:60px;height:80px;border-radius:6px;object-fit:cover}
+.movie-cover{
+  width:60px;
+  height:80px;
+  object-fit:cover;
+  
+}
 .admin-search-wraper{
   Margin: 3rem 0 1rem 0;
 }
@@ -1294,11 +1311,19 @@ Body.admin-body.dark h2 {
   border-radius: 6px;
   overflow: hidden;
   width: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
   background: #fafafa;
   transition: transform 0.2s, box-shadow 0.2s;
   flex: 0 0 auto; /* جلوگیری از کشیده شدن */
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.58);
+  padding: .2rem;
+}
+.episode-card .episode-title {
+  margin-top: 4px;
+  text-align: center;
 }
 body.dark .episode-card{
   Background: rgba(255,255,255,0.08);
@@ -1312,19 +1337,38 @@ body.dark .episode-card{
 /* کاور اپیزود */
 .episode-card img.episode-cover {
   width: 100%;
+  aspect-ratio: 9/15;
   object-fit: cover;
-  display: block;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
 }
-
 /* عنوان اپیزود */
 .episode-card .episode-title {
   font-size: 0.8rem;
   padding: 4px;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
+  position: relative;
+  text-align: center;
 }
 
+.episode-card .episode-title span {
+  font-size: 0.8rem;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* وقتی کلاس scrollable اضافه بشه */
+.episode-card .episode-title.scrollable span {
+  padding-left: 100%;
+  animation: scrollEpisodeTitle 9s linear infinite;
+}
+
+@keyframes scrollEpisodeTitle {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
 /* اپیزود فعال */
 .episode-card.active {
   border: 1px solid;

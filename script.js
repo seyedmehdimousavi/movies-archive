@@ -864,13 +864,17 @@ if (episodesContainer) {
         ];
 
         const listEl = card.querySelector('.episodes-list');
-        listEl.innerHTML = allEpisodes.map((ep, idx) => `
-          <div class="episode-card ${idx === 0 ? 'active' : ''}" data-link="${ep.link}">
-            <img src="${escapeHtml(ep.cover || 'https://via.placeholder.com/120x80?text=No+Cover')}" 
-                 alt="${escapeHtml(ep.title)}" class="episode-cover">
-            <div class="episode-title">${escapeHtml(ep.title)}</div>
-          </div>
-        `).join('');
+        listEl.innerHTML = allEpisodes.map((ep, idx) => {
+  const titleText = escapeHtml(ep.title || '');
+  const scrollable = titleText.length > 15 ? 'scrollable' : '';
+  return `
+    <div class="episode-card ${idx === 0 ? 'active' : ''}" data-link="${ep.link}">
+      <img src="${escapeHtml(ep.cover || 'https://via.placeholder.com/120x80?text=No+Cover')}" 
+           alt="${titleText}" class="episode-cover">
+      <div class="episode-title ${scrollable}"><span>${titleText}</span></div>
+    </div>
+  `;
+}).join('');
 
         goBtn.dataset.link = allEpisodes[0].link;
 
