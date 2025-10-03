@@ -1292,7 +1292,6 @@ Body.admin-body.dark h2 {
 /* هر اپیزود */
 .episode-card {
   cursor: pointer;
-  border: 1px solid #ccc;
   border-radius: 6px;
   overflow: hidden;
   width: 80px;
@@ -1300,8 +1299,12 @@ Body.admin-body.dark h2 {
   background: #fafafa;
   transition: transform 0.2s, box-shadow 0.2s;
   flex: 0 0 auto; /* جلوگیری از کشیده شدن */
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.58);
 }
-
+body.dark .episode-card{
+  Background: rgba(255,255,255,0.08);
+  Color:#e6eef6;
+}
 .episode-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
@@ -1325,8 +1328,9 @@ Body.admin-body.dark h2 {
 
 /* اپیزود فعال */
 .episode-card.active {
-  border-color: #007bff;
-  box-shadow: 0 0 6px rgba(0,123,255,0.6);
+  border: 1px solid;
+  border-color: rgba(0,123,255,0.6);
+  box-shadow: 0 3px 10px rgba(0,123,255,0.6);
 }
 
 /* برچسب کالکشن/سریال */

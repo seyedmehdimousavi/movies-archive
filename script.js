@@ -705,7 +705,7 @@ async function renderPagedMovies(skipScroll) {
           <span class="movie-name">${title}</span>
           ${m.type && m.type !== 'single'
             ? `<span class="collection-badge ${m.type === 'collection' ? 'badge-collection' : 'badge-serial'}">
-                 ${m.type === 'collection' ? 'کالکشن' : 'سریال'}
+                 ${m.type === 'collection' ? 'Collection' : 'Series'}
                </span>`
             : ''}
         </div>
@@ -856,7 +856,7 @@ if (episodesContainer) {
         if (titleEl && !titleEl.querySelector('.collection-badge')) {
           const badge = document.createElement('span');
           badge.className = 'collection-badge';
-          badge.textContent = m.type === 'collection' ? 'کالکشن' : 'سریال';
+          badge.textContent = m.type === 'collection' ? 'Collection' : 'Series';
           titleEl.appendChild(badge);
         }
       })();
@@ -982,7 +982,7 @@ function renderAdminMovieList(list = []) {
             <span class="movie-name">${escapeHtml(m.title || '')}</span>
             ${m.type && m.type !== 'single' 
               ? `<span class="badge-type ${m.type === 'collection' ? 'badge-collection' : 'badge-serial'}">
-                   ${m.type === 'collection' ? 'کالکشن' : 'سریال'}
+                   ${m.type === 'collection' ? 'Collection' : 'Series'}
                  </span>` 
               : ''}
           </div>
