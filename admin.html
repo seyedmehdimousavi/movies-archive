@@ -3,90 +3,122 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Movies Archive</title>
-  <!-- Bootstrap icons -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <title>Admin Panel</title>
+
+  <!-- IRANSans -->
+  <link href="https://cdn.fontcdn.ir/Font/Persian/IRANSans/IRANSans.css" rel="stylesheet" type="text/css" />
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-  <!-- main stylesheet -->
+  <!-- icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+  <!-- styles -->
   <link rel="stylesheet" href="style.css">
 
-  <!-- supabase client -->
+  <!-- supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="index-body">
+<body class="admin-body">
 
-<!-- Header (sticky with blur) -->
-<header class="main-header">
-  <div class="search-bar">
-    <button id="menuBtn" class="menu-btn" aria-label="menu"><img width="96" height="96" src="images/icons8-menu.apng" alt="menu--v2" style="display: flex;align-items: center;"/></button>
-    <input id="search" type="text" placeholder="Search..." />
-    <button id="profileBtn" class="icon-inside" style="display: flex;align-items: center;" aria-label="profile">
-  <img src="images/icons8-user-96.png" alt="user"/>
-  <span id="commentBadge" class="badge" style="display:none;">!</span>
-</button>
+<header class="admin-header">
+  <h1>Admin Panel</h1>
+  <div class="admin-actions">
+    <a href="index.html" class="back-link"><i class="bi bi-arrow-left-circle"></i></a>
+    <button id="logoutBtn" class="logout-btn" type="button"><img src="images/icons8-logout-64.png" style="width: 20px;">log out</button>
   </div>
-    
-    <button id="themeToggle" class="icon-btn" aria-label="toggle theme" style="display: flex;align-items: center;"><img src="images/icons8-moon.apng" alt="bright-moon"/></button>
 </header>
 
-<!-- side menu and overlay -->
-<div id="menuOverlay" class="menu-overlay"></div>
-<nav id="sideMenu" class="side-menu" aria-hidden="true">
-  <div class="menu-section">
-  <div id="genreToggle" class="menu-toggle">
-    <i class="bi bi-list"></i> Genres
+<main>
+  
+  <section id="adminProfile" class="admin-section">
+    
+    
+    
+    <section class="send_post admin-section-item-1 admin-section-item">
+      <h2>Post Management</h2>
+
+    <!-- add / edit movie form -->
+    <form id="addMovieForm" class="admin-form" enctype="multipart/form-data">
+  <!-- فرم اصلی فیلم تکی -->
+  <input id="title" type="text" placeholder="Title" />
+  <input id="coverFile" type="file" accept="image/*" />
+  <input id="link" type="text" placeholder="File Link" />
+  <textarea id="synopsis" placeholder="Synopsis"></textarea>
+  <input id="director" type="text" placeholder="Director" />
+  <input id="product" type="text" placeholder="Product" />
+  <input id="stars" type="text" placeholder="Stars" />
+  <input id="imdb" type="text" placeholder="IMDB" />
+  <input id="release_info" type="text" placeholder="Release Info" />
+  <input id="genre" type="text" placeholder="Genre (space-separated)" />
+<input type="hidden" id="mode" name="mode" value="single">
+  <!-- دکمه‌های Collection / Serial -->
+  <div id="bundle-toggle" class="admin-form">
+    <button type="button" id="btn-collection" class="admin-submit">Collection</button>
+    <button type="button" id="btn-serial" class="admin-submit">Serial</button>
   </div>
-  <div id="genreSubmenu" class="submenu" style="display:none;">
-    <div id="genreGrid" class="genre-grid"></div>
+
+  <!-- کانتینر فرم‌های پویا -->
+  <div id="bundle-forms"></div>
+
+  <!-- دکمه‌های افزودن/حذف -->
+  <div id="bundle-actions" class="admin-form" hidden>
+    <button type="button" id="btn-add-item" class="admin-submit"></button>
+    <button type="button" id="btn-remove-last" class="admin-submit danger"></button>
   </div>
-</div>
 
-  <h3><i class="bi bi-link-45deg"></i> Links</h3>
-<div id="socialGrid" class="social-grid"></div>
-</nav>
-<section class="movie-type-tabs">
-  <button data-type="all" class="active">All Movies <span class="count">0</span></button>
-  <button data-type="collection">Collections <span class="count">0</span></button>
-  <button data-type="series">Series <span class="count">0</span></button>
-  <button data-type="single">Single Films <span class="count">0</span></button>
-</section>
-<!-- main container -->
-<div class="container">
-  <!-- admin messages (bubbles above movies) -->
-  <div id="adminMessages" class="messages-container" aria-live="polite"></div>
+  <!-- دکمه ارسال -->
+  <button type="submit" class="admin-submit">
+    Submit and Send <i class="bi bi-cloud-upload"></i>
+  </button>
+</form>
+    </section>
+    
+    
+    
+    <section class="admin_messages admin-section-item-2 admin-section-item">
+      <!-- admin messages section -->
+      <h2>Admin Messages</h2>
+      <form id="addMessageForm" class="admin-form">
+        <textarea id="messageText" placeholder="Write a message..."></textarea>
+        <button type="submit" class="admin-submit">Submit message <i class="bi bi-chat-dots"></i></button>
+      </form>
+      <div id="messageList" class="message-list" aria-live="polite"></div>
+    </section>
 
-  <!-- movies count -->
-  <div id="movieCount" class="movie-count">Number of movies: 0</div>
 
-  <!-- movies grid -->
-  <div id="moviesGrid" class="movies-grid" role="list"></div>
+    <section id="unapproved-comments-section" class="admin-section-item-3 admin-section-item">
+      <h2>Unpublished Comments</h2>
+      <div id="unapprovedComments"></div>
+    </section>
 
-  <!-- pagination -->
-  <div id="pagination" class="pagination-container" aria-label="pagination"></div>
-</div>
 
-<!-- login modal (hidden by default) -->
-<div id="loginModal" class="login-modal" aria-hidden="true">
-  <div class="login-box" role="dialog" aria-labelledby="loginTitle">
-    <button id="closeLoginModal" class="close-btn" aria-label="close">&times;</button>
-    <h2 id="loginTitle">Admin login</h2>
-    <form id="loginForm" class="login-form" novalidate>
-      <div class="input-group">
-        <span class="icon"><i class="bi bi-person"></i></span>
-        <input id="loginEmail" type="email" placeholder="Email" required />
+    <section id="social-links-section" class="admin-section-item-4 admin-section-item">
+        <h2>Links in sidemenu</h2>
+        <form id="addSocialForm" class="admin-form">
+           <input id="socialTitle" type="text" placeholder="Title" required />
+           <input id="socialIcon" type="file" accept="image/*" />
+           <input id="socialUrl" type="text" placeholder="Link" required />
+           <button type="submit" class="admin-submit">Add link</button>
+        </form>
+        <div id="socialList" class="message-list"></div>
+    </section>
+    
+    <section class="released_movies admin-section-item-5 admin-section-item">
+       <!-- admin search (after messages, before movie list) -->
+      <div class="admin-search-wrapper">
+        <h2>Search in released movies</h2>
+        <input id="adminSearch" class="admin-search-input" type="text" placeholder="Search movies..." />
       </div>
-      <div class="input-group">
-        <span class="icon"><i class="bi bi-lock"></i></span>
-        <input id="loginPassword" type="password" placeholder="Password" required />
+      <div>
+        <h2>Released Movies</h2>
+        <!-- movie list -->
+        <div id="movieList" class="movie-list"></div>
+        <div id="admin-pagination" class="pagination-container"></div>
       </div>
-      <button type="submit" class="login-btn">Log in</button>
-      <div class="social-login">
-      </div>
-    </form>
-  </div>
-</div>
+    </section>
+    
+  </section>
+</main>
 
-<!-- script (app logic) -->
 <script src="script.js"></script>
 </body>
 </html>
