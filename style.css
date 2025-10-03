@@ -1457,36 +1457,71 @@ Backdrop-filter: blur(var(--blur));
   background: #fff;
   color: var(--primary-bg);
 }
-/* کارت‌ها */
 .reveal {
   opacity: 0;
-  transform: translateY(40px);
   transition: all 0.6s ease;
-}
-.reveal.active {
-  opacity: 1;
-  transform: translateY(0);
 }
 
-/* کوت‌ها */
+.reveal.active-down {
+  opacity: 1;
+  transform: translateY(0);
+  animation: fromBottom 0.6s ease forwards;
+}
+
+.reveal.active-up {
+  opacity: 1;
+  transform: translateY(0);
+  animation: fromTop 0.6s ease forwards;
+}
+
+@keyframes fromBottom {
+  from { transform: translateY(40px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fromTop {
+  from { transform: translateY(-40px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
 .field-quote {
   opacity: 0;
-  transform: translateX(40px);
   transition: all 0.6s ease;
-  transition-delay: 0.2s; /* کمی دیرتر از کارت */
 }
-.field-quote.active {
+
+.field-quote.active-down {
   opacity: 1;
   transform: translateX(0);
+  animation: fromRight 0.6s ease forwards;
+}
+
+.field-quote.active-up {
+  opacity: 1;
+  transform: translateX(0);
+  animation: fromLeft 0.6s ease forwards;
+}
+
+@keyframes fromRight {
+  from { transform: translateX(40px); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fromLeft {
+  from { transform: translateX(-40px); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
 }
 .episodes-container {
   opacity: 0;
-  transform: translateX(40px);
   transition: all 0.6s ease;
-  transition-delay: 0.2s; /* کمی دیرتر از کارت */
 }
 
-.episodes-container.active {
+.episodes-container.active-down {
   opacity: 1;
   transform: translateX(0);
+  animation: fromRight 0.6s ease forwards;
+}
+
+.episodes-container.active-up {
+  opacity: 1;
+  transform: translateX(0);
+  animation: fromLeft 0.6s ease forwards;
 }

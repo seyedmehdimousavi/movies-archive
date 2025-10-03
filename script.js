@@ -613,34 +613,66 @@ document.querySelectorAll(".movie-type-tabs button").forEach(btn => {
     filterByType(btn.dataset.type);
   });
 });
+// -------------------- تشخصیص جهت اسکرول --------------------
+let lastScrollY = window.scrollY;
+let scrollDirection = 'down';
 
+window.addEventListener('scroll', () => {
+  if (window.scrollY > lastScrollY) {
+    scrollDirection = 'down';
+  } else {
+    scrollDirection = 'up';
+  }
+  lastScrollY = window.scrollY;
+});
 
-// -------------------- تعریف Observer کارت‌ها --------------------
+// کارت‌ها
 const cardObserver = new IntersectionObserver(entries => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
-      entry.target.classList.add('active');
-      cardObserver.unobserve(entry.target);
+      if (scrollDirection === 'down') {
+        entry.target.classList.add('active-down');
+        entry.target.classList.remove('active-up');
+      } else {
+        entry.target.classList.add('active-up');
+        entry.target.classList.remove('active-down');
+      }
+    } else {
+      entry.target.classList.remove('active-down', 'active-up');
     }
   });
-}, { threshold: 0.1 });
+}, { threshold: 0.03});
 
-// -------------------- تعریف Observer کوت‌ها --------------------
+// کوت‌ها
 const quoteObserver = new IntersectionObserver(entries => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
-      entry.target.classList.add('active');
-      quoteObserver.unobserve(entry.target);
+      if (scrollDirection === 'down') {
+        entry.target.classList.add('active-down');
+        entry.target.classList.remove('active-up');
+      } else {
+        entry.target.classList.add('active-up');
+        entry.target.classList.remove('active-down');
+      }
+    } else {
+      entry.target.classList.remove('active-down', 'active-up');
     }
   });
 }, { threshold: 0.1 });
 
-// -------------------- تعریف Observer اپیزودها --------------------
+// اپیزودها
 const containerObserver = new IntersectionObserver(entries => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
-      entry.target.classList.add('active');
-      containerObserver.unobserve(entry.target);
+      if (scrollDirection === 'down') {
+        entry.target.classList.add('active-down');
+        entry.target.classList.remove('active-up');
+      } else {
+        entry.target.classList.add('active-up');
+        entry.target.classList.remove('active-down');
+      }
+    } else {
+      entry.target.classList.remove('active-down', 'active-up');
     }
   });
 }, { threshold: 0.1 });
@@ -768,9 +800,9 @@ async function renderPagedMovies(skipScroll) {
     moviesGrid.appendChild(card);
 
     cardObserver.observe(card);
-    card.querySelectorAll('.field-quote').forEach(q => {
-      quoteObserver.observe(q);
-    });
+    card.querySelectorAll('.field-quote').forEach(fq => {
+  quoteObserver.observe(fq);
+});
     const episodesContainer = card.querySelector('.episodes-container');
 if (episodesContainer) {
   containerObserver.observe(episodesContainer);
@@ -919,7 +951,6 @@ if (episodesContainer) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }
-
   // -------------------- Admin guard --------------------
   async function enforceAdminGuard() {
     try {
