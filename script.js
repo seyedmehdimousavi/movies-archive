@@ -715,12 +715,18 @@ async function renderPagedMovies(skipScroll) {
     const stars = escapeHtml(m.stars || '-');
     const imdb = escapeHtml(m.imdb || '-');
     const release_info = escapeHtml(m.release_info || '-');
-
     const genreLinks = (m.genre || '')
-      .split(' ')
-      .filter(g => g.trim())
-      .map(g => `<a href="#" onclick="(function(){ const searchEl=document.getElementById('search'); searchEl.value='${escapeHtml(g)}'; searchEl.dispatchEvent(new Event('input')); })();">${escapeHtml(g)}</a>`)
-      .join(' ');
+  .split(' ')
+  .filter(g => g.trim())
+  .map(g => {
+    if (g.startsWith('#')) {
+      const clean = escapeHtml(g);
+      return `<span class="genre-chip-mini" onclick="(function(){ const searchEl=document.getElementById('search'); searchEl.value='${clean}'; searchEl.dispatchEvent(new Event('input')); })();">${clean}</span>`;
+    } else {
+      return `<a href="#" onclick="(function(){ const searchEl=document.getElementById('search'); searchEl.value='${escapeHtml(g)}'; searchEl.dispatchEvent(new Event('input')); })();">${escapeHtml(g)}</a>`;
+    }
+  })
+  .join(' ');
 
     const card = document.createElement('div');
     card.classList.add('movie-card', 'reveal');
@@ -752,20 +758,31 @@ async function renderPagedMovies(skipScroll) {
         <div class="field-quote">${director}</div>
 
         <span class="field-label"><img src="images/icons8-location.apng" style="width:20px;height:20px;"> Product:</span>
-        <div class="field-quote">
-          ${product !== '-' ? `<a href="#" onclick="(function(){ const searchEl=document.getElementById('search'); searchEl.value='${product}'; searchEl.dispatchEvent(new Event('input')); })();">${product}</a>` : '-'}
-        </div>
+<div class="field-quote">
+  ${
+    product !== '-' 
+      ? product.split(' ').map(p => {
+          if (p.startsWith('#')) {
+            const clean = escapeHtml(p);
+            return `<span class="genre-chip-mini" onclick="(function(){ const searchEl=document.getElementById('search'); searchEl.value='${clean}'; searchEl.dispatchEvent(new Event('input')); })();">${clean}</span>`;
+          } else {
+            return `<a href="#" onclick="(function(){ const searchEl=document.getElementById('search'); searchEl.value='${escapeHtml(p)}'; searchEl.dispatchEvent(new Event('input')); })();">${escapeHtml(p)}</a>`;
+          }
+        }).join(' ')
+      : '-'
+  }
+</div>
 
         <span class="field-label"><img src="images/icons8-star.apng" style="width:20px;height:20px;"> Stars:</span>
         <div class="field-quote">${stars}</div>
 
-        <span class="field-label"><img src="images/icons8-imdb-48.png" style="width:20px;height:20px;"> IMDB:</span>
+        <span class="field-label "><img src="images/icons8-imdb-48.png" class="imdb-bell" style="width:20px;height:20px;"> IMDB:</span>
         <div class="field-quote">${imdb}</div>
 
         <span class="field-label"><img src="images/icons8-calendar.apng" style="width:20px;height:20px;"> Release:</span>
         <div class="field-quote">${release_info}</div>
 
-        <span class="field-label"><img src="images/icons8-comedy-96.png" style="width:20px;height:20px;"> Genre:</span>
+        <span class="field-label"><img src="images/icons8-comedy-96.png" class="genre-bell" style="width:20px;height:20px;"> Genre:</span>
         <div class="field-quote">${genreLinks || '-'}</div>
 
         <div class="episodes-container" data-movie-id="${m.id}">
@@ -1895,6 +1912,36 @@ if (addMovieForm && movieList) {
     });
   }
 
+const adminSearchInput = document.getElementById('adminSearch');
+
+if (adminSearchInput) {
+  adminSearchInput.addEventListener('input', async () => {
+    const q = adminSearchInput.value.trim().toLowerCase();
+
+    if (!q) {
+      // اگه سرچ خالی بود، لیست کامل رو بیار
+      loadAdminMovies(1);
+      return;
+    }
+
+    // سرچ در دیتابیس
+    const { data, error } = await supabase
+      .from('movies')
+      .select('*')
+      .or(`title.ilike.%${q}%,director.ilike.%${q}%,genre.ilike.%${q}%`)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Admin search error:', error);
+      return;
+    }
+
+    renderAdminMovieList(data);
+    // صفحه‌بندی رو خالی کن چون سرچ معمولاً همه نتایج رو نشون میده
+    const adminPagination = document.getElementById('admin-pagination');
+    if (adminPagination) adminPagination.innerHTML = '';
+  });
+}
   // -------------------- Initial load --------------------
   fetchMovies();
   fetchMessages();

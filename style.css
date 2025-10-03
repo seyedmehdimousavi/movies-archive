@@ -24,7 +24,6 @@
   src: url('/fonts/IRANSansWeb(FaNum)_Light.woff') format('woff');
   unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF; /* محدوده‌ی یونیکد فارسی/عربی */
 }
-
 /* فونت انگلیسی */
 @font-face {
   font-family:'RobotoLatin';
@@ -1525,3 +1524,18 @@ Backdrop-filter: blur(var(--blur));
   transform: translateX(0);
   animation: fromLeft 0.6s ease forwards;
 }
+.genre-chip-mini {
+  display: inline-block;
+  padding: 3px 8px;
+  margin: 2px 4px 2px 0;
+  border-radius: 12px;
+  background: rgba(33,133,213,0.9);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.2;
+  cursor: pointer;
+  user-select: none;
+  transition: background 160ms ease, transform 120ms ease;
+}
+.genre-chip-mini:hover { background: #e3eef6; }
+.genre-chip-mini:active { transform: scale(0.96); }
