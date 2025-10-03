@@ -1478,3 +1478,14 @@ Backdrop-filter: blur(var(--blur));
   opacity: 1;
   transform: translateX(0);
 }
+.episodes-container {
+  opacity: 0;
+  transform: translateX(40px);
+  transition: all 0.6s ease;
+  transition-delay: 0.2s; /* کمی دیرتر از کارت */
+}
+
+.episodes-container.active {
+  opacity: 1;
+  transform: translateX(0);
+}

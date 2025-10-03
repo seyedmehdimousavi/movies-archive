@@ -615,7 +615,7 @@ document.querySelectorAll(".movie-type-tabs button").forEach(btn => {
 });
 
 
- // -------------------- تعریف Observer کارت‌ها --------------------
+// -------------------- تعریف Observer کارت‌ها --------------------
 const cardObserver = new IntersectionObserver(entries => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
@@ -635,6 +635,15 @@ const quoteObserver = new IntersectionObserver(entries => {
   });
 }, { threshold: 0.1 });
 
+// -------------------- تعریف Observer اپیزودها --------------------
+const containerObserver = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('active');
+      containerObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.1 });
 // -------------------- Render movies (paged) --------------------
 async function renderPagedMovies(skipScroll) {
   if (!moviesGrid || !movieCount) return;
@@ -663,7 +672,7 @@ async function renderPagedMovies(skipScroll) {
   const pageItems = filtered.slice(start, start + PAGE_SIZE);
 
   moviesGrid.innerHTML = '';
-  movieCount.innerText = `🎞️ Number of movies: ${filtered.length}`;
+  movieCount.innerText = `Number of movies: ${filtered.length}`;
 
   for (const m of pageItems) {
     const cover = escapeHtml(m.cover || 'https://via.placeholder.com/300x200?text=No+Image');
@@ -762,6 +771,10 @@ async function renderPagedMovies(skipScroll) {
     card.querySelectorAll('.field-quote').forEach(q => {
       quoteObserver.observe(q);
     });
+    const episodesContainer = card.querySelector('.episodes-container');
+if (episodesContainer) {
+  containerObserver.observe(episodesContainer);
+}
 
     const goBtn = card.querySelector('.go-btn');
     goBtn?.addEventListener('click', () => {
