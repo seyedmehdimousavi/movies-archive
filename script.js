@@ -13,6 +13,7 @@ let messages = [];
 let editingMovie = null;
 const PAGE_SIZE = 10;
 let currentPage = 1;
+let episodesByMovie = new Map(); // movie_id → [episodes]
 
 // -------------------- Utilities --------------------
 function escapeHtml(str) {
@@ -288,7 +289,7 @@ function attachCommentsHandlers(card, movieId) {
   sendBtn?.addEventListener('click', async () => {
     let name = (nameInput?.value || 'Guest').trim() || 'Guest';
     const text = (textInput?.value || '').trim();
-    if (name.length > 15) { showToast('Your name must not exceed 15 characters'); return; }
+    if (name.length > 16) { showToast('Your name must not exceed 15 characters'); return; }
     if (!text) { showToast('Please type a comment'); return; }
     sendBtn.disabled = true;
     const originalText = sendBtn.textContent;
@@ -461,6 +462,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .order('created_at', { ascending: false });
       if (error) { console.error('fetch movies error', error); movies = []; }
       else { movies = data || []; }
+      await fetchEpisodes();
       currentPage = 1;
       await renderPagedMovies(); // note: await for inner supabase calls in bundles
       buildGenreGrid();
@@ -479,6 +481,32 @@ document.addEventListener('DOMContentLoaded', () => {
       if (document.getElementById('messageList')) renderAdminMessages();
     } catch (err) { console.error(err); messages = []; }
   }
+async function fetchEpisodes() {
+  try {
+    const { data, error } = await supabase
+      .from('movie_items')
+      .select('*')
+      .order('movie_id', { ascending: true })
+      .order('order_index', { ascending: true });
+
+    if (error) {
+      console.error('fetch episodes error', error);
+      episodesByMovie.clear();
+      return;
+    }
+
+    // ساخت کش: movie_id → episodes[]
+    episodesByMovie.clear();
+    (data || []).forEach(ep => {
+      const list = episodesByMovie.get(ep.movie_id) || [];
+      list.push(ep);
+      episodesByMovie.set(ep.movie_id, list);
+    });
+  } catch (err) {
+    console.error('fetchEpisodes catch', err);
+    episodesByMovie.clear();
+  }
+}
 
   // Messages UI
   function renderMessages() {
@@ -753,15 +781,32 @@ function buildTabGenres(filteredMovies) {
     container.appendChild(chip);
   });
 }
-
+const episodeMatches = new Map(); // movie_id → index اپیزود
 async function renderPagedMovies(skipScroll) {
   if (!moviesGrid || !movieCount) return;
   const q = (searchInput?.value || '').toLowerCase();
 
   // 1. فیلتر سرچ
-  let filtered = movies.filter(m =>
-    Object.values(m).some(val => typeof val === 'string' && val.toLowerCase().includes(q))
-  );
+  let filtered = movies.filter(m => {
+  // سرچ در خود فیلم
+  const movieMatch = Object.values(m).some(val => typeof val === 'string' && val.toLowerCase().includes(q));
+
+  // سرچ در اپیزودها
+  let episodeMatch = false;
+  if (!movieMatch && (m.type === 'collection' || m.type === 'serial')) {
+  const eps = episodesByMovie.get(m.id) || [];
+  for (let idx = 0; idx < eps.length; idx++) {
+    const ep = eps[idx];
+    if (Object.values(ep).some(val => typeof val === 'string' && val.toLowerCase().includes(q))) {
+      episodeMatches.set(m.id, idx + 1); // 👈 +1 چون allEpisodes[0] خود فیلمه
+      episodeMatch = true;
+      break;
+    }
+  }
+}
+
+  return movieMatch || episodeMatch;
+});
 
   // 2. فیلتر نوع (تب‌ها)
   if (currentTypeFilter !== "all") {
@@ -920,86 +965,164 @@ async function renderPagedMovies(skipScroll) {
     attachCommentsHandlers(card, m.id);
 
     if (m.type === 'collection' || m.type === 'serial') {
-      (async () => {
-        const { data: eps, error: epsErr } = await supabase
-          .from('movie_items')
-          .select('*')
-          .eq('movie_id', m.id)
-          .order('order_index', { ascending: true });
+  (async () => {
+    const { data: eps, error: epsErr } = await supabase
+      .from('movie_items')
+      .select('*')
+      .eq('movie_id', m.id)
+      .order('order_index', { ascending: true });
 
-        if (epsErr) {
-          console.error('Error loading episodes:', epsErr);
-          return;
-        }
-
-        const allEpisodes = [
-          { 
-            id: m.id,
-            title: m.title,
-            cover: m.cover,
-            synopsis: m.synopsis,
-            director: m.director,
-            product: m.product,
-            stars: m.stars,
-            imdb: m.imdb,
-            release_info: m.release_info,
-            genre: m.genre,
-            link: m.link
-          },
-          ...(eps || [])
-        ];
-
-        const listEl = card.querySelector('.episodes-list');
-        listEl.innerHTML = allEpisodes.map((ep, idx) => {
-          const titleText = escapeHtml(ep.title || '');
-          const scrollable = titleText.length > 15 ? 'scrollable' : '';
-          return `
-            <div class="episode-card ${idx === 0 ? 'active' : ''}" data-link="${ep.link}">
-              <img src="${escapeHtml(ep.cover || 'https://via.placeholder.com/120x80?text=No+Cover')}" 
-                   alt="${titleText}" class="episode-cover">
-              <div class="episode-title ${scrollable}"><span>${titleText}</span></div>
-            </div>
-          `;
-        }).join('');
-
-        goBtn.dataset.link = allEpisodes[0].link;
-
-        listEl.querySelectorAll('.episode-card').forEach((cardEl, idx) => {
-          cardEl.addEventListener('click', () => {
-            listEl.querySelectorAll('.episode-card').forEach(c => c.classList.remove('active'));
-            cardEl.classList.add('active');
-
-            if (m.type === 'serial') {
-              goBtn.dataset.link = cardEl.dataset.link;
-            } else if (m.type === 'collection') {
-              const ep = allEpisodes[idx];
-              const nameEl = card.querySelector('.movie-name');
-              if (nameEl) nameEl.textContent = ep.title || title;
-              const coverImg = card.querySelector('.cover-image');
-              if (coverImg) coverImg.src = ep.cover || cover;
-              const coverBlur = card.querySelector('.cover-blur');
-              if (coverBlur) coverBlur.style.backgroundImage = `url('${ep.cover || cover}')`;
-              card.querySelector('.quote-text').textContent = ep.synopsis || synopsis;
-              card.querySelectorAll('.field-quote')[1].textContent = ep.director || director;
-              card.querySelectorAll('.field-quote')[2].textContent = ep.product || product;
-              card.querySelectorAll('.field-quote')[3].textContent = ep.stars || stars;
-              card.querySelectorAll('.field-quote')[4].textContent = ep.imdb || imdb;
-              card.querySelectorAll('.field-quote')[5].textContent = ep.release_info || release_info;
-              card.querySelectorAll('.field-quote')[6].textContent = ep.genre || genreLinks;
-              goBtn.dataset.link = ep.link;
-            }
-          });
-        });
-
-        const titleEl = card.querySelector('.movie-title');
-        if (titleEl && !titleEl.querySelector('.collection-badge')) {
-          const badge = document.createElement('span');
-          badge.className = 'collection-badge';
-          badge.textContent = m.type === 'collection' ? 'Collection' : 'Series';
-          titleEl.appendChild(badge);
-        }
-      })();
+    if (epsErr) {
+      console.error('Error loading episodes:', epsErr);
+      return;
     }
+
+    const allEpisodes = [
+      { 
+        id: m.id,
+        title: m.title,
+        cover: m.cover,
+        synopsis: m.synopsis,
+        director: m.director,
+        product: m.product,
+        stars: m.stars,
+        imdb: m.imdb,
+        release_info: m.release_info,
+        genre: m.genre,
+        link: m.link
+      },
+      ...(eps || [])
+    ];
+
+    const listEl = card.querySelector('.episodes-list');
+
+    // اگر اپیزود match شده بود، همون index فعال میشه
+    const activeIndex = episodeMatches.get(m.id) ?? 0;
+
+    listEl.innerHTML = allEpisodes.map((ep, idx) => {
+      const titleText = escapeHtml(ep.title || '');
+      const scrollable = titleText.length > 16 ? 'scrollable' : '';
+      return `
+        <div class="episode-card ${idx === activeIndex ? 'active' : ''}" data-link="${ep.link}">
+          <img src="${escapeHtml(ep.cover || 'https://via.placeholder.com/120x80?text=No+Cover')}" 
+               alt="${titleText}" class="episode-cover">
+          <div class="episode-title ${scrollable}"><span>${titleText}</span></div>
+        </div>
+      `;
+    }).join('');
+
+    // لینک Go روی اپیزود فعال ست میشه
+    goBtn.dataset.link = allEpisodes[activeIndex].link;
+
+    // 👇 اگر اپیزود match شده بود
+    if (activeIndex > 0) {
+      const ep = allEpisodes[activeIndex];
+
+      if (m.type === 'collection') {
+        // تغییر همه مشخصات
+        const nameEl = card.querySelector('.movie-name');
+        if (nameEl) nameEl.textContent = ep.title || m.title;
+        const coverImg = card.querySelector('.cover-image');
+        if (coverImg) coverImg.src = ep.cover || m.cover;
+        const coverBlur = card.querySelector('.cover-blur');
+        if (coverBlur) coverBlur.style.backgroundImage = `url('${ep.cover || m.cover}')`;
+        card.querySelector('.quote-text').textContent = ep.synopsis || m.synopsis;
+        card.querySelectorAll('.field-quote')[1].textContent = ep.director || m.director;
+        card.querySelectorAll('.field-quote')[2].textContent = ep.product || m.product;
+        card.querySelectorAll('.field-quote')[3].textContent = ep.stars || m.stars;
+        card.querySelectorAll('.field-quote')[4].textContent = ep.imdb || m.imdb;
+        card.querySelectorAll('.field-quote')[5].textContent = ep.release_info || m.release_info;
+        card.querySelectorAll('.field-quote')[6].textContent = ep.genre || '';
+      }
+
+      if (m.type === 'serial') {
+        // فقط تغییر title + cover + blur + link
+        const nameEl = card.querySelector('.movie-name');
+        if (nameEl) nameEl.textContent = ep.title || m.title;
+        const coverImg = card.querySelector('.cover-image');
+        if (coverImg) coverImg.src = ep.cover || m.cover;
+        const coverBlur = card.querySelector('.cover-blur');
+        if (coverBlur) coverBlur.style.backgroundImage = `url('${ep.cover || m.cover}')`;
+        goBtn.dataset.link = ep.link;
+      }
+    }
+
+    // 👇 اسکرول خودکار فقط اگر سرچ باعث match شده باشه
+    setTimeout(() => {
+      const activeEpEl = listEl.querySelector('.episode-card.active');
+      if (activeEpEl && allEpisodes.length > 3 && episodeMatches.has(m.id)) {
+        const prevScrollY = window.scrollY;
+        activeEpEl.scrollIntoView({
+          behavior: 'smooth',
+          inline: 'end',
+          block: 'nearest'
+        });
+        setTimeout(() => {
+          window.scrollTo({ top: prevScrollY });
+        }, 0);
+      }
+    }, 100);
+
+    // هندل کلیک روی اپیزودها
+    listEl.querySelectorAll('.episode-card').forEach((cardEl, idx) => {
+      cardEl.addEventListener('click', () => {
+        listEl.querySelectorAll('.episode-card').forEach(c => c.classList.remove('active'));
+        cardEl.classList.add('active');
+
+        const ep = allEpisodes[idx];
+
+        if (m.type === 'serial') {
+          // تغییر title + cover + blur + link
+          const nameEl = card.querySelector('.movie-name');
+          if (nameEl) nameEl.textContent = ep.title || m.title;
+          const coverImg = card.querySelector('.cover-image');
+          if (coverImg) coverImg.src = ep.cover || m.cover;
+          const coverBlur = card.querySelector('.cover-blur');
+          if (coverBlur) coverBlur.style.backgroundImage = `url('${ep.cover || m.cover}')`;
+          goBtn.dataset.link = ep.link;
+        } else if (m.type === 'collection') {
+          // تغییر همه مشخصات
+          const nameEl = card.querySelector('.movie-name');
+          if (nameEl) nameEl.textContent = ep.title || m.title;
+          const coverImg = card.querySelector('.cover-image');
+          if (coverImg) coverImg.src = ep.cover || m.cover;
+          const coverBlur = card.querySelector('.cover-blur');
+          if (coverBlur) coverBlur.style.backgroundImage = `url('${ep.cover || m.cover}')`;
+          card.querySelector('.quote-text').textContent = ep.synopsis || m.synopsis;
+          card.querySelectorAll('.field-quote')[1].textContent = ep.director || m.director;
+          card.querySelectorAll('.field-quote')[2].textContent = ep.product || m.product;
+          card.querySelectorAll('.field-quote')[3].textContent = ep.stars || m.stars;
+          card.querySelectorAll('.field-quote')[4].textContent = ep.imdb || m.imdb;
+          card.querySelectorAll('.field-quote')[5].textContent = ep.release_info || m.release_info;
+          card.querySelectorAll('.field-quote')[6].textContent = ep.genre || '';
+          goBtn.dataset.link = ep.link;
+        }
+
+        // 👇 اسکرول افقی هنگام کلیک
+        if (allEpisodes.length > 3) {
+          const prevScrollY = window.scrollY;
+          cardEl.scrollIntoView({
+            behavior: 'smooth',
+            inline: 'end',
+            block: 'nearest'
+          });
+          setTimeout(() => {
+            window.scrollTo({ top: prevScrollY });
+          }, 0);
+        }
+      });
+    });
+
+    // اضافه کردن badge Collection/Series اگر نبود
+    const titleEl = card.querySelector('.movie-title');
+    if (titleEl && !titleEl.querySelector('.collection-badge')) {
+      const badge = document.createElement('span');
+      badge.className = 'collection-badge';
+      badge.textContent = m.type === 'collection' ? 'Collection' : 'Series';
+      titleEl.appendChild(badge);
+    }
+  })();
+}
   }
 
   // -------------------- toggle برای synopsis --------------------

@@ -1344,7 +1344,7 @@ body.dark .episode-card{
 }
 /* عنوان اپیزود */
 .episode-card .episode-title {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   padding: 4px;
   white-space: nowrap;
   overflow: hidden;
@@ -1353,7 +1353,7 @@ body.dark .episode-card{
 }
 
 .episode-card .episode-title span {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   display: inline-block;
   white-space: nowrap;
 }
@@ -1587,7 +1587,6 @@ Backdrop-filter: blur(var(--blur));
   
 }
 .tab-genres-wrapper {
-  margin: 8px 0 12px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
