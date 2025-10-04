@@ -17,7 +17,6 @@
   --primary-bg: #512bd4;
   --promo-accent-color: #dcd5f6;
   --gradient-purple-magenta: linear-gradient(128.87deg, #512bd4 14.05%, #d600aa 89.3%);
-  --fontb: yekan;
 }
 @font-face {
   font-family: 'IRANSans';
@@ -1426,7 +1425,7 @@ body.dark .episode-card{
 
 .movie-type-tabs {
   position: sticky;
-  top: 65px; /* ارتفاع هدر اصلی */
+  top: 65px;
   z-index: 900;
   display: flex;
   gap: 8px;
@@ -1582,4 +1581,74 @@ Backdrop-filter: blur(var(--blur));
   transition: background 160ms ease, transform 120ms ease;
 }
 .genre-chip-mini:hover { background: #e3eef6; }
-.genre-chip-mini:active { transform: scale(0.96); }
+.genre-chip-mini:active {
+  transform: scale(0.96);
+  background-color: var(--promo-accent-color);
+  
+}
+.tab-genres-wrapper {
+  margin: 8px 0 12px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tab-genres-list {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  padding: 4px 0;
+  margin: 0 20px;
+}
+
+.tab-genres-list .genre-chip {
+  flex: 0 0 auto;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #eef3f7;
+  color: #0b3d5c;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+.tab-genres-list .genre-chip:hover {
+  background: #dce9f2;
+}
+.close-btn {
+  font-size: 1.2rem;
+  font-weight: bold;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  line-height: 1;
+}
+.close-btn:hover {
+  color: #000;
+}
+.genre-chip {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  margin: 4px;
+  border-radius: 16px;
+  background: #eee;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.genre-chip:hover {
+  background: #ddd;
+}
+
+.genre-chip.active {
+  background: #007bff;   /* رنگ پس‌زمینه وقتی اکتیو شد */
+  color: #fff;           /* رنگ متن */
+  font-weight: bold;     /* بولد شدن متن */
+}

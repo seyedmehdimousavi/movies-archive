@@ -576,7 +576,24 @@ document.addEventListener('DOMContentLoaded', () => {
       renderPagedMovies();
     });
   }
+  
+const searchCloseBtn = document.getElementById('searchCloseBtn');
 
+if (searchInput && profileBtn && searchCloseBtn) {
+  const toggleSearchDecor = () => {
+    const hasText = searchInput.value.trim() !== '';
+    profileBtn.style.display = hasText ? 'none' : 'flex';
+    searchCloseBtn.style.display = hasText ? 'flex' : 'none';
+  };
+
+  toggleSearchDecor();
+  searchInput.addEventListener('input', toggleSearchDecor);
+
+  searchCloseBtn.addEventListener('click', () => {
+    searchInput.value = '';
+    searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+}
 
 
 // --------------------
@@ -608,8 +625,21 @@ function filterByType(type) {
 // وصل کردن کلیک روی تب‌ها
 document.querySelectorAll(".movie-type-tabs button").forEach(btn => {
   btn.addEventListener("click", () => {
+    // دکمه فعال
     document.querySelectorAll(".movie-type-tabs button").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
+
+    // ریست کردن سرچ
+    if (searchInput) {
+      searchInput.value = '';
+    }
+
+    // ریست کردن ژانر انتخاب‌شده (زیر تب‌ها)
+    currentTabGenre = null; // متغیر سراسری ژانر
+    const genreChips = document.querySelectorAll('.tab-genres-list .genre-chip.active');
+    genreChips.forEach(chip => chip.classList.remove('active'));
+
+    // اعمال فیلتر نوع
     filterByType(btn.dataset.type);
   });
 });
@@ -677,21 +707,77 @@ const containerObserver = new IntersectionObserver(entries => {
   });
 }, { threshold: 0.1 });
 // -------------------- Render movies (paged) --------------------
+// متغیر سراسری برای ژانر انتخاب‌شده (فقط یک بار بیرون تعریف بشه)
+let currentTabGenre = null;
+
+function buildTabGenres(filteredMovies) {
+  const container = document.querySelector('.tab-genres-list');
+  if (!container) return;
+
+  const genreSet = new Set();
+  filteredMovies.forEach(m => {
+    if (m.genre) {
+      m.genre.split(' ').forEach(g => {
+        if (g.trim() !== '') genreSet.add(g.trim());
+      });
+    }
+  });
+
+  container.innerHTML = '';
+  [...genreSet].sort().forEach(g => {
+    const chip = document.createElement('div');
+    chip.className = 'genre-chip';
+    chip.textContent = g;
+
+    // اگر ژانر فعلی انتخاب شده بود، active کن
+    if (currentTabGenre === g) {
+      chip.classList.add('active');
+    }
+
+    chip.onclick = () => {
+  if (currentTabGenre === g) {
+    // اگر دوباره روی خودش کلیک شد → غیرفعال کن
+    chip.classList.remove('active');
+    currentTabGenre = null;   // فیلتر ژانر ریست
+  } else {
+    // همه غیر فعال
+    container.querySelectorAll('.genre-chip').forEach(c => c.classList.remove('active'));
+    // این یکی فعال
+    chip.classList.add('active');
+    currentTabGenre = g;
+  }
+  currentPage = 1;
+  renderPagedMovies();
+};
+
+    container.appendChild(chip);
+  });
+}
+
 async function renderPagedMovies(skipScroll) {
   if (!moviesGrid || !movieCount) return;
   const q = (searchInput?.value || '').toLowerCase();
 
+  // 1. فیلتر سرچ
   let filtered = movies.filter(m =>
     Object.values(m).some(val => typeof val === 'string' && val.toLowerCase().includes(q))
   );
 
+  // 2. فیلتر نوع (تب‌ها)
   if (currentTypeFilter !== "all") {
     filtered = filtered.filter(m => {
       const t = (m.type || "").toLowerCase();
       if (currentTypeFilter === "series") {
-        return t === "serial";
+        return t === "serial"; // چون داده‌ها به صورت serial ذخیره شدن
       }
       return t === currentTypeFilter;
+    });
+  }
+
+  // 3. فیلتر ژانر (زیر تب‌ها)
+  if (currentTabGenre) {
+    filtered = filtered.filter(m => {
+      return (m.genre || '').split(' ').includes(currentTabGenre);
     });
   }
 
@@ -716,17 +802,17 @@ async function renderPagedMovies(skipScroll) {
     const imdb = escapeHtml(m.imdb || '-');
     const release_info = escapeHtml(m.release_info || '-');
     const genreLinks = (m.genre || '')
-  .split(' ')
-  .filter(g => g.trim())
-  .map(g => {
-    if (g.startsWith('#')) {
-      const clean = escapeHtml(g);
-      return `<span class="genre-chip-mini" onclick="(function(){ const searchEl=document.getElementById('search'); searchEl.value='${clean}'; searchEl.dispatchEvent(new Event('input')); })();">${clean}</span>`;
-    } else {
-      return `<a href="#" onclick="(function(){ const searchEl=document.getElementById('search'); searchEl.value='${escapeHtml(g)}'; searchEl.dispatchEvent(new Event('input')); })();">${escapeHtml(g)}</a>`;
-    }
-  })
-  .join(' ');
+      .split(' ')
+      .filter(g => g.trim())
+      .map(g => {
+        if (g.startsWith('#')) {
+          const clean = escapeHtml(g);
+          return `<span class="genre-chip-mini" onclick="(function(){ const searchEl=document.getElementById('search'); searchEl.value='${clean}'; searchEl.dispatchEvent(new Event('input')); })();">${clean}</span>`;
+        } else {
+          return `<a href="#" onclick="(function(){ const searchEl=document.getElementById('search'); searchEl.value='${escapeHtml(g)}'; searchEl.dispatchEvent(new Event('input')); })();">${escapeHtml(g)}</a>`;
+        }
+      })
+      .join(' ');
 
     const card = document.createElement('div');
     card.classList.add('movie-card', 'reveal');
@@ -758,20 +844,20 @@ async function renderPagedMovies(skipScroll) {
         <div class="field-quote">${director}</div>
 
         <span class="field-label"><img src="images/icons8-location.apng" style="width:20px;height:20px;"> Product:</span>
-<div class="field-quote">
-  ${
-    product !== '-' 
-      ? product.split(' ').map(p => {
-          if (p.startsWith('#')) {
-            const clean = escapeHtml(p);
-            return `<span class="genre-chip-mini" onclick="(function(){ const searchEl=document.getElementById('search'); searchEl.value='${clean}'; searchEl.dispatchEvent(new Event('input')); })();">${clean}</span>`;
-          } else {
-            return `<a href="#" onclick="(function(){ const searchEl=document.getElementById('search'); searchEl.value='${escapeHtml(p)}'; searchEl.dispatchEvent(new Event('input')); })();">${escapeHtml(p)}</a>`;
+        <div class="field-quote">
+          ${
+            product !== '-' 
+              ? product.split(' ').map(p => {
+                  if (p.startsWith('#')) {
+                    const clean = escapeHtml(p);
+                    return `<span class="genre-chip-mini" onclick="(function(){ const searchEl=document.getElementById('search'); searchEl.value='${clean}'; searchEl.dispatchEvent(new Event('input')); })();">${clean}</span>`;
+                  } else {
+                    return `<a href="#" onclick="(function(){ const searchEl=document.getElementById('search'); searchEl.value='${escapeHtml(p)}'; searchEl.dispatchEvent(new Event('input')); })();">${escapeHtml(p)}</a>`;
+                  }
+                }).join(' ')
+              : '-'
           }
-        }).join(' ')
-      : '-'
-  }
-</div>
+        </div>
 
         <span class="field-label"><img src="images/icons8-star.apng" style="width:20px;height:20px;"> Stars:</span>
         <div class="field-quote">${stars}</div>
@@ -818,12 +904,12 @@ async function renderPagedMovies(skipScroll) {
 
     cardObserver.observe(card);
     card.querySelectorAll('.field-quote').forEach(fq => {
-  quoteObserver.observe(fq);
-});
+      quoteObserver.observe(fq);
+    });
     const episodesContainer = card.querySelector('.episodes-container');
-if (episodesContainer) {
-  containerObserver.observe(episodesContainer);
-}
+    if (episodesContainer) {
+      containerObserver.observe(episodesContainer);
+    }
 
     const goBtn = card.querySelector('.go-btn');
     goBtn?.addEventListener('click', () => {
@@ -865,16 +951,16 @@ if (episodesContainer) {
 
         const listEl = card.querySelector('.episodes-list');
         listEl.innerHTML = allEpisodes.map((ep, idx) => {
-  const titleText = escapeHtml(ep.title || '');
-  const scrollable = titleText.length > 15 ? 'scrollable' : '';
-  return `
-    <div class="episode-card ${idx === 0 ? 'active' : ''}" data-link="${ep.link}">
-      <img src="${escapeHtml(ep.cover || 'https://via.placeholder.com/120x80?text=No+Cover')}" 
-           alt="${titleText}" class="episode-cover">
-      <div class="episode-title ${scrollable}"><span>${titleText}</span></div>
-    </div>
-  `;
-}).join('');
+          const titleText = escapeHtml(ep.title || '');
+          const scrollable = titleText.length > 15 ? 'scrollable' : '';
+          return `
+            <div class="episode-card ${idx === 0 ? 'active' : ''}" data-link="${ep.link}">
+              <img src="${escapeHtml(ep.cover || 'https://via.placeholder.com/120x80?text=No+Cover')}" 
+                   alt="${titleText}" class="episode-cover">
+              <div class="episode-title ${scrollable}"><span>${titleText}</span></div>
+            </div>
+          `;
+        }).join('');
 
         goBtn.dataset.link = allEpisodes[0].link;
 
@@ -964,14 +1050,16 @@ if (episodesContainer) {
     }
   });
 
-  // -------------------- صفحه‌بندی --------------------
+  // -------------------- صفحه‌بندی و ژانر --------------------
   renderPagination(filtered.length);
+  buildTabGenres(filtered);
 
   // -------------------- اسکرول به بالا --------------------
   if (!skipScroll) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }
+
   // -------------------- Admin guard --------------------
   async function enforceAdminGuard() {
     try {

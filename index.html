@@ -18,14 +18,21 @@
 <!-- Header (sticky with blur) -->
 <header class="main-header">
   <div class="search-bar">
-    <button id="menuBtn" class="menu-btn" aria-label="menu"><img width="96" height="96" src="images/icons8-menu.apng" alt="menu--v2" style="display: flex;align-items: center;"/></button>
-    <input id="search" type="text" placeholder="Search..." />
-    <button id="profileBtn" class="icon-inside" style="display: flex;align-items: center;" aria-label="profile">
-  <img src="images/icons8-user-96.png" alt="user"/>
-  <span id="commentBadge" class="badge" style="display:none;">!</span>
-</button>
-  </div>
-    
+  <button id="menuBtn" class="menu-btn" aria-label="menu">
+    <img width="96" height="96" src="images/icons8-menu.apng" alt="menu--v2" style="display:flex;align-items:center;"/>
+  </button>
+
+  <input id="search" type="text" placeholder="Search..." />
+
+  <!-- دکمه پروفایل (با استایل icon-inside و انیمیشن رینگ خودش) -->
+  <button id="profileBtn" class="icon-inside" style="display:flex;align-items:center;" aria-label="profile">
+    <img src="images/icons8-user-96.png" alt="user"/>
+    <span id="commentBadge" class="badge" style="display:none;">!</span>
+  </button>
+
+  <!-- دکمه close ساده (بدون کلاس icon-inside) -->
+  <button id="searchCloseBtn" class="close-btn" style="display:none;" aria-label="close">✕</button>
+</div>
     <button id="themeToggle" class="icon-btn" aria-label="toggle theme" style="display: flex;align-items: center;"><img src="images/icons8-moon.apng" alt="bright-moon"/></button>
 </header>
 
@@ -50,6 +57,11 @@
   <button data-type="series">Series <span class="count">0</span></button>
   <button data-type="single">Single Films <span class="count">0</span></button>
 </section>
+
+<div class="tab-genres-wrapper">
+  <div class="tab-genres-list"></div>
+</div>
+
 <!-- main container -->
 <div class="container">
   <!-- admin messages (bubbles above movies) -->
